@@ -1,9 +1,15 @@
-:-consult('input.pl').
+:-consult('infra.pl').
+:-consult('images.pl').
 
-% placement/2 returns a cost-optimal image Placement and its Cost.
+% placement/2 returns an image Placement and its Cost.
 placement(Placement, Cost) :-
-    findall(I, image(I,_), Images), 
-    imagePlacement(Images, Placement, Cost), 
+    findall(I, image(I,_,_), Images), 
+    imagePlacement(Images, Placement, Cost).
+
+% bestPlacement/2 returns a cost-optimal image Placement and its Cost.
+bestPlacement(Placement, Cost) :-
+    findall(I, image(I,_,_), Images), 
+    imagePlacement(Images, Placement, Cost),
     \+ ( imagePlacement(Images, P2, C2), dif(Placement, P2), C2 < Cost ).
 
 % imagePlacement/3 recursively places images on nodes by using replicaPlacement/5.
@@ -17,7 +23,7 @@ imagePlacement([],[],0).
 % It computes the NewCost of NewPlacement by updating the OldCost of Placement.
 replicaPlacement(I, Placement, NewPlacement, OldCost, NewCost) :-
     \+ transferTimesOk(I, Placement),
-    image(I, Size), node(N, Storage, C), \+ member(at(I,N), Placement),
+    image(I, Size, _), node(N, Storage, C), \+ member(at(I,N), Placement),
     usedHw(Placement, N, UsedHw), Storage - UsedHw >= Size,
     TmpCost is C * Size + OldCost,
     replicaPlacement(I,[at(I, N)|Placement],NewPlacement,TmpCost, NewCost).
@@ -31,16 +37,16 @@ transferTimesOk(I,P) :-
 
 checkTransferTimes(I, [N|Ns], P) :-
     member(at(I,M),P), 
-    maxTransferTime(I,Max), transferTime(I,M,N,T), T < Max,!, 
+    image(I,_,Max), transferTime(I,M,N,T), T < Max,!, 
     checkTransferTimes(I, Ns, P).
 checkTransferTimes(_, [], _).
 
 transferTime(Image, Src, Dest, T) :-
-    image(Image, Size), dif(Src, Dest),
+    image(Image, Size, _), dif(Src, Dest),
     node(Src, _, _), node(Dest, _, _),
     link(Src, Dest, Latency, Bandwidth),
-    T is Size / Bandwidth + Latency.
+    T is Size * 8 / Bandwidth + Latency.
 transferTime(_, N, N, 0).
 
 usedHw(P, N, TotUsed) :-
-    findall(S, (member(at(I,N), P), image(I,S)), Used), sum_list(Used, TotUsed).
+    findall(S, (member(at(I,N), P), image(I,S,_)), Used), sum_list(Used, TotUsed).

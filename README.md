@@ -1,2 +1,2 @@
 # proimg
-declarative docker image placer
+declarative container image placer to cloud-edge networks
