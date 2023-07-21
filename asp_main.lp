@@ -7,8 +7,8 @@ def compute_transfer_time(size, bandwith, latency):
 #end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-image(alpine, 5, 3000).
-image(busybox, 5, 3000).
+image(alpine, 5, 300).
+image(busybox, 5, 300).
 
 node(n0,16,3).
 node(n1,2,2).
