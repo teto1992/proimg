@@ -2,7 +2,7 @@
 import clingo
 
 def compute_transfer_time(size, bandwith, latency):
-	r = float(size.number) / float(bandwith.number) + float(latency.number)
+	r = float(size.number) * float(8.0) / float(bandwith.number) + float(latency.number)
 	return clingo.Number(int(r))
 #end.
 

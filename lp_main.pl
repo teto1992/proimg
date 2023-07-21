@@ -11,8 +11,7 @@ iterativeDeepening(Placement, Cost) :-
     maxReplicas(Max), iterativeDeepening(Placement, Cost, 1, Max), !.
 
 iterativeDeepening(Placement, Cost, M, Max) :-
-    M =< Max, \+ bestPlacement(Placement, Cost, M),
-    write(M), nl, NewM is M+1,
+    M =< Max, \+ bestPlacement(Placement, Cost, M), NewM is M+1,
     iterativeDeepening(Placement, Cost, NewM, Max).
 iterativeDeepening(Placement, Cost, M, Max) :-
     M =< Max, bestPlacement(Placement, Cost, M).
