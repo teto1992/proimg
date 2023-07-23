@@ -1,6 +1,3 @@
-image(alpine, 5, 300).
-image(busybox, 5, 300).
-
 node(n0,16,3).
 node(n1,2,2).
 node(n2,8,3).
