@@ -11,6 +11,7 @@ pip3 install dist/*.whl
 ```
 
 # Usage
+```bash
 usage: __main__.py [-h] [-d] [-o OUTPUT] infrastructure images
 
 positional arguments:
@@ -22,6 +23,7 @@ optional arguments:
   -d, --debug
   -o OUTPUT, --output OUTPUT
                         Save optimal solution to file as a JSON.
+```
 
 # TODO
 
