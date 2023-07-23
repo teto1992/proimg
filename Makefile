@@ -5,7 +5,7 @@ uninstall:
 	pip3 uninstall proimg -y
 
 build: clean
-	python3 -m build
+	python3 -m build --wheel
 
 clean:
 	rm -rf dist

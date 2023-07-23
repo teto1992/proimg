@@ -11,11 +11,17 @@ pip3 install dist/*.whl
 ```
 
 # Usage
-```bash
-python3 -m proimg INFRASTRUCTURE IMAGES
-```
+usage: __main__.py [-h] [-d] [-o OUTPUT] infrastructure images
 
-where `INFRASTRUCTURE` and `IMAGES` are paths to files describing the input network topology and available container images. Check out `example_inputs` for the input atom schema.
+positional arguments:
+  infrastructure        File describing network architecture.
+  images                File with images to be placed.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d, --debug
+  -o OUTPUT, --output OUTPUT
+                        Save optimal solution to file as a JSON.
 
 # TODO
 
