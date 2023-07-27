@@ -1,4 +1,3 @@
-:-dynamic node/4.
 node(n0,32,2).
 node(n1,32,3).
 node(n2,256,3).
