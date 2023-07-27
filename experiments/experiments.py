@@ -36,4 +36,4 @@ def generateInfrastructure(seed,n,m):
 
     f.close()
 
-generateInfrastructure(481183, 100, 3)
+generateInfrastructure(481183, 10, 3)
