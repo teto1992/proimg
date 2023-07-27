@@ -1,0 +1,10 @@
+* continuous reasoning:
+    - capire come efficientare la versione ASP 
+    - provare a implementare versione Prolog
+
+* framework esperimenti:
+    - usare topologie random "sensate", estendendo experiments.py
+    - cercare dati realistici
+
+* altri algoritmi:
+    - Genetic algorithms (in vista di GA vs IID vs ASP)
