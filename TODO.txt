@@ -7,4 +7,8 @@
     - cercare dati realistici
 
 * altri algoritmi:
-    - Genetic algorithms (in vista di GA vs IID vs ASP)
+    - genetic algorithms (in vista di GA vs IID vs ASP)
+
+* possibili venue:
+    - PADL24
+    - SIs?
