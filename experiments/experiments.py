@@ -1,11 +1,12 @@
 import networkx as nx
+import numpy as np
 import math
-import random as rnd
 from pyswip import Prolog
 import time
 import re
 
-def generateInfrastructure(seed,n,m):
+def generateInfrastructure(seed, n, m):
+    rnd = np.random.default_rng(seed)
         
     G = nx.generators.random_graphs.barabasi_albert_graph(n,m,seed)
 
