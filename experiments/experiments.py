@@ -7,10 +7,16 @@ import numpy as np
 
 
 def node_atom(i, storage, cost):
+    """
+    Encodes a network's node as a node/3 atom. 
+    """
     return "node(n{}, {}, {}).".format(i, storage, cost)
 
 
 def link_atom(i, j, latency, bandwidth):
+    """
+    Encodes a network's link as a link/4 atom. 
+    """
     return "link(n{}, n{}, {}, {}).".format(i, j, latency, bandwidth)
 
 
@@ -21,6 +27,15 @@ def write(string, target):
         hnd.write(string)
 
 def generate_infrastructure(n, m, seed, params):
+    """
+    Generates a network topology according to experiment's parameters:
+      - network/edge-cloud-ratio: probabilty a node is assigned to edge of the network
+      - node/{edge,cloud}-storage: storage available in the node (MB)
+      - node/cost: unit-cost for transferring a MB from that node
+      - link/latency: latency on a given network's link
+      - link/bandwidth: bandwidth on a given network's link
+    """
+
     rnd = np.random.default_rng(seed)
 
     G = nx.generators.random_graphs.barabasi_albert_graph(n, m, seed)
@@ -42,7 +57,10 @@ def generate_infrastructure(n, m, seed, params):
     return G
 
 def reify_infrastructure(G):
-    prg = [":-dynamic node/4."]
+    """
+    Maps a networkx Graph object into a set of logic facts.
+    """
+    prg = [":-dynamic node/4."] # TODO: Can this be moved on top of Prolog's program?
     for i, attr in G.nodes.items():
         prg.append(node_atom(i, attr["storage"], attr["cost"]))
     for (i, j), attr in G.edges.items():
