@@ -1,9 +1,13 @@
 import networkx as nx
 import numpy as np
-import math
 from pyswip import Prolog
-import time
-import re
+
+def node_atom(i, storage, cost):
+    return "node(n{}, {}, {}).\n".format(i, storage, cost)
+
+def link_atom(i, j, latency, bandwidth):
+    return 'link(n{}, n{}, {}, {}).\n'.format(i, j, latency, bandwidth)
+
 
 def generateInfrastructure(seed, n, m):
     rnd = np.random.default_rng(seed)
@@ -24,17 +28,13 @@ def generateInfrastructure(seed, n, m):
         G.edges[i,j]['latency'] = str(rnd.choice([5,10,25,50,100,150]))
         G.edges[i,j]['bandwidth'] = str(rnd.choice([10, 20, 50, 100, 200, 500, 1000]))
 
-    f = open("infra.pl","w+")
-    f.write(':-dynamic node/4.\n')
-    for i in range(0,n):
-        node = G.nodes[i]
-        newnode = 'node(n'+str(i)+','+node['storage']+','+node['cost']+').\n'
-        f.write(newnode)
-    for (i,j) in G.edges():
-        link=G.edges[i,j]
-        newlink='link(n'+str(i)+',n'+str(j)+','+str(link['latency'])+','+link['bandwidth']+').\n'
-        f.write(newlink)
-
-    f.close()
+    with open('infra.pl', 'w+') as f:
+        f.write(':-dynamic node/4.\n')
+        for i in range(0,n):
+            node = G.nodes[i]
+            f.write(node_atom(i, node['storage'], node['cost']))
+        for (i,j) in G.edges():
+            link=G.edges[i,j]
+            f.write(link_atom(i, j, link['latency'], link['bandwidth']))
 
 generateInfrastructure(481183, 10, 3)
