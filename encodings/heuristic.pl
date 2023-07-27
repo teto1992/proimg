@@ -1,5 +1,5 @@
-:-consult('infra.pl').
-:-consult('images.pl').
+:-consult('../infra.pl').
+:-consult('./example_inputs/images.lp').
 
 :- set_prolog_flag(table_space, 16000000000).
 
