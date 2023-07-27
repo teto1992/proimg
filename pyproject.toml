@@ -24,7 +24,9 @@ classifiers = [
 ]
 
 dependencies = [
-  "clingo"
+  "clingo", 
+  "pyswip",
+  "networkx"
 ]
 
 [project.urls]
