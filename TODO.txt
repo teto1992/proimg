@@ -1,14 +1,18 @@
+Target: FGCS - 03/11/23 https://journals.elsevier.com/future-generation-computer-systems%20/call-for-papers/scalable-compute-continuum 
+
+* iniziare scrittura:
+    - formalizzazione problema (1 SF)
+    - descrivere Prolog e ASP base (2 SF, AI)
+    - related
+
 * continuous reasoning:
-    - capire come efficientare la versione ASP 
-    - provare a implementare versione Prolog
+    - capire come efficientare la versione ASP (2 AI)
+    - provare a implementare versione Prolog (1 SF, DA)
 
 * framework esperimenti:
-    - usare topologie random "sensate", estendendo experiments.py
+    - usare topologie random "sensate" (barabasi-albert, erdos-renyi), estendendo experiments.py (2 DA)
     - cercare dati realistici
-
-* altri algoritmi:
-    - genetic algorithms (in vista di GA vs IID vs ASP)
 
 * possibili venue:
     - PADL24
-    - SIs?
+    - free voucher per MDPI/FI?

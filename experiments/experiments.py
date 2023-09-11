@@ -51,81 +51,21 @@ def generate_infrastructure(n, m, seed, params):
 
         G.nodes[i]["cost"] = rnd.choice(params["node"]["unit-cost"])
 
-    for (i, j) in G.edges():
-        G.edges[i, j]["latency"] = rnd.choice(params["link"]["latency"])
-        G.edges[i, j]["bandwidth"] = rnd.choice(params["link"]["bandwidth"])
+    for (i,j) in G.edges():
+        G.edges[i,j]['latency'] = str(rnd.choice([5,10,25,50,100,150]))
+        G.edges[i,j]['bandwidth'] = str(rnd.choice([10, 20, 50, 100, 200, 500, 1000]))
 
-    return G
+    f = open("infra.pl","w+")
+    f.write(':-dynamic node/4.\n')
+    for i in range(0,n):
+        node = G.nodes[i]
+        newnode = 'node(n'+str(i)+','+node['storage']+','+node['cost']+').\n'
+        f.write(newnode)
+    for (i,j) in G.edges():
+        link=G.edges[i,j]
+        newlink='link(n'+str(i)+',n'+str(j)+','+str(link['latency'])+','+link['bandwidth']+').\n'
+        f.write(newlink)
 
+    f.close()
 
-def reify_infrastructure(G):
-    """
-    Maps a networkx Graph object into a set of logic facts.
-    """
-    prg = [":-dynamic node/4."]  # TODO: Can this be moved on top of Prolog's program?
-    for i, attr in G.nodes.items():
-        prg.append(node_atom(i, attr["storage"], attr["cost"]))
-    for (i, j), attr in G.edges.items():
-        prg.append(link_atom(i, j, attr["latency"], attr["bandwidth"]))
-
-    return "\n".join(prg)
-
-
-def parse_args():
-    p = ArgumentParser()
-    p.add_argument(
-        "num_nodes", type=int, help="Number of nodes in the generated network."
-    )
-    p.add_argument(
-        "num_edges", type=int, help="Number of edges under AB generation scheme."
-    )
-    p.add_argument("-o", "--output-file", type=str, help="Output file.")
-    p.add_argument(
-        "-s",
-        "--seed",
-        type=int,
-        default=481183,
-        help="Numpy seed for random number generation.",
-    )
-    p.add_argument(
-        "-p",
-        "--params",
-        type=str,
-        default=None,
-        help="JSON containing node, link properties ranges.",
-    )
-    args = p.parse_args()
-    return args
-
-
-def load_params(filename):
-    DEFAULT_PARAMETERS = {
-        "network": {
-            "edge-cloud-ratio": 0.2,
-        },
-        "node": {
-            "edge-storage": [2, 4, 8, 16, 32],
-            "cloud-storage": [64, 128, 256],
-            "unit-cost": [1, 2, 3, 4, 5],
-        },
-        "link": {
-            "latency": [5, 10, 25, 50, 100, 150],
-            "bandwidth": [10, 20, 50, 100, 200, 500, 1000],
-        },
-    }
-
-    if filename is None:
-        return DEFAULT_PARAMETERS
-
-    with open(filename) as f:
-        return json.load(f)
-
-
-if __name__ == "__main__":
-    args = parse_args()
-    params = load_params(args.params)
-
-    g = generate_infrastructure(args.num_nodes, args.num_edges, args.seed, params)
-    prg = reify_infrastructure(g)
-
-    write(prg, args.output_file)
+generateInfrastructure(481183, 100, 3)
