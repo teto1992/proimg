@@ -1,14 +1,15 @@
 %%%%% FACT SCHEMA
 % image(ID, Size, MaxTransferTime)
+% max_replicas(ID, R)
 % node(ID, Storage, Cost)
 % link(I, J, Latency, Bandwidth)
 %%%%%% 
 
-% Each image is deployed to at least one node
-1 { placement(Img, NodeID): node(NodeID, _, _)} :- image(Img, _, _). 
+% Each image is deployed to at least one node,
+1 { placement(Img, NodeID): node(NodeID, _, _)} R :- image(Img, _, _), max_replicas(Img,R).
 
 % Compute transfer times
-transfer_time(Img, Src, Src, 0) :- placement(Img,Src). %node(Src, _, _), image(Img, _, _).
+transfer_time(Img, Src, Src, 0) :- placement(Img,Src). 
 transfer_time(Img, Src, Dst, @compute_transfer_time(S,B,L)) :- placement(Img,Src), image(Img, S, _), link(Src, Dst, L, B).
 
 % There exists a node X such that Img is deployed on X and X can transfer to Dst within thresholds
@@ -18,5 +19,5 @@ transfer_ok(Img,Dst)     :- transfer_time(Img, X, Dst,T), image(Img,_,MaxTransfe
 % Storage threshold
 :- TS = #sum{Size, Img : image(Img, Size, _), placement(Img, X)}, node(X, Cap, _), TS > Cap.
 
-% Minimize transfer costs 
+% Minimize costs 
 :~ placement(Img, X), node(X, _, Cost), image(Img, Size, _). [Cost * Size @ 1, Img, X]
