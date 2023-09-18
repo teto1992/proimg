@@ -7,6 +7,8 @@ import clingo
 import argparse
 from collections import defaultdict
 
+from math import ceil
+
 ENCODING = (pathlib.Path(__file__).parent / "encoding.lp").as_posix()
 
 
@@ -31,18 +33,18 @@ class Context:
         self.debug = debug
 
     def compute_transfer_time(self, size, bandwith, latency):
-        r = float(size.number) * float(8.0) / float(bandwith.number) + float(
-            latency.number
-        )
+        # latency.number / 1000 ms -> s
+        r_seconds = float(size.number) * float(8.0) / float(bandwith.number) + float(latency.number) / 1000.0
+        r_milliseconds = r_seconds * 1000.0
 
         if self.debug:
             logging.debug(
                 Messages.TRANSFER_TIME_COMPUTATION.format(
-                    size, bandwith, latency, r, round(r)
+                    size, bandwith, latency, r_milliseconds, ceil(r_milliseconds)
                 )
             )
 
-        return clingo.Number(round(r))
+        return clingo.Number(int(ceil(r_milliseconds)))
 
 
 def project_answer_set(model):
@@ -75,6 +77,9 @@ class SolutionCallback:
     @property
     def as_json(self):
         image_to_nodes = defaultdict(lambda: [])
+        if self._placement is None:
+            # Never met a model, unsat
+            return json.dumps({"satisfiable": False}, indent=2)
 
         for symbol in self._placement:
             img = symbol.arguments[0].name
@@ -83,6 +88,7 @@ class SolutionCallback:
 
         return json.dumps(
             {
+                "satisfiable": True,
                 "cost": self._cost,
                 "placement": [
                     {"image": image, "nodes": nodes}
@@ -127,9 +133,9 @@ if __name__ == "__main__":
     ctl.load(args.infrastructure)
     ctl.load(args.images)
 
-    ctl.ground(context=Context(args.debug))
+    ctl.ground([("base",[])], context=Context(args.debug))
 
     s = SolutionCallback(args.debug)
-    ctl.solve(on_model=s)
+    ans = ctl.solve(on_model=s)
 
     write(s.as_json, args.output)
