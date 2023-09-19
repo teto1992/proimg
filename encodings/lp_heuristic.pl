@@ -1,11 +1,7 @@
-:-consult('../infra.pl').
-:-consult('./example_inputs/images.lp').
+:-consult('input.pl').
 
 :- set_prolog_flag(table_space, 16000000000).
-
 :- table transferTime/4.
-
-maxReplicas(100).
 
 iterativeDeepening(Placement, Cost) :-
     maxReplicas(Max), candidateNodes(Nodes), iterativeDeepening(Nodes, Placement, Cost, 1, Max), !. % stops at first solution
