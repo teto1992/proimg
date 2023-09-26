@@ -11,11 +11,11 @@ import random
 # liseconds tolerated to download such image onto a target node
 
 images_string = '''
-max_replicas(alpine,5).
-max_replicas(ngnix,5).
-max_replicas(busybox,5).
-max_replicas(ubuntu,5).
-max_replicas(python,5).
+max_replicas(alpine, 50).
+max_replicas(ngnix,  50).
+max_replicas(busybox,50).
+max_replicas(ubuntu, 50).
+max_replicas(python, 50).
 
 image(alpine,3,300).
 image(ngnix,65,300).
@@ -47,15 +47,17 @@ def generate_infrastructure_barabasi_albert(
                     edge = random.random() > 0.2 # 80% of the nodes in the edge, 20% in the cloud
 
                     if (edge):
-                        G.nodes[i]['storage'] = str(random.choice([2,4,8,16,32]))
+                        # G.nodes[i]['storage'] = str(random.choice([2,4,8,16,32]))
+                        G.nodes[i]['storage'] = str(1000)
                     else:
-                        G.nodes[i]['storage'] = str(random.choice([64,128,256]))
+                        # G.nodes[i]['storage'] = str(random.choice([64,128,256]))
+                        G.nodes[i]['storage'] = str(1000)
                     
                     G.nodes[i]['cost'] = str(random.choice([1,2,3,4,5]))
 
                 for (i,j) in G.edges():
-                    G.edges[i,j]['latency'] = str(random.choice([5,10,25,50,100,150]))
-                    G.edges[i,j]['bandwidth'] = str(random.choice([10, 20, 50, 100, 200, 500, 1000]))
+                    G.edges[i,j]['latency'] = str(random.choice([5,10]))#,25,50,100,150]))
+                    G.edges[i,j]['bandwidth'] = str(random.choice([1000, 2000]))# , 50, 100, 200, 500, 1000]))
 
                 f = open(f"{number_of_nodes}/b_a_{number_of_nodes}_{current_m}_{seed}.pl","w+")
 

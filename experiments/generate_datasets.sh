@@ -10,4 +10,3 @@ done
 python3 generate_networks.py $INITSIZE $ENDSIZE $STEPSIZE 0
 
 python3 generate_runner_scripts.py $INITSIZE $ENDSIZE $STEPSIZE 0
-
