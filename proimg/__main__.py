@@ -2,6 +2,7 @@ import sys
 import pathlib
 import logging
 import json
+import time
 
 import clingo
 import argparse
@@ -56,7 +57,9 @@ class SolutionCallback:
         self._placement = None
         self._cost = None
         self.debug = debug
-
+        self.current_time = time.time()
+        self.intermediate_solutions : 'list[tuple[int,float]]' = []
+        
     def __call__(self, model):
         atoms = project_answer_set(model)
         if self.debug:
@@ -68,10 +71,20 @@ class SolutionCallback:
             )
 
         if not model.optimality_proven:
+            exec_time = time.time() - self.current_time
+            print(f"Cost: {model.cost} computed in: {exec_time} seconds")
+            self.intermediate_solutions.append((model.cost[0],exec_time))
+            self.current_time = time.time()
             return True
 
+
+        # self.current_time = time.time()
         self._placement = atoms
         self._cost = model.cost
+        exec_time = time.time() - self.current_time
+        print(f"OPTIMAL Cost: {model.cost} computed in: {exec_time} seconds")
+        self.intermediate_solutions.append((model.cost[0],exec_time))
+        
         return False
 
     @property
@@ -135,7 +148,15 @@ if __name__ == "__main__":
 
     ctl.ground([("base",[])], context=Context(args.debug))
 
+    init_time = time.time()
     s = SolutionCallback(args.debug)
     ans = ctl.solve(on_model=s)
+    print(f"Computation time: {time.time() - init_time} s")
+    
+    total_time = s.intermediate_solutions[-1][1] - s.intermediate_solutions[0][1]
 
-    write(s.as_json, args.output)
+    for i in range(0,len(s.intermediate_solutions)):
+        perc_value = ((s.intermediate_solutions[i][0] - s.intermediate_solutions[-1][0]) * 100) / (s.intermediate_solutions[0][0] - s.intermediate_solutions[-1][0])
+        print(f"value: {100 - perc_value} in {s.intermediate_solutions[i][1]}")
+
+    # write(s.as_json, args.output)
