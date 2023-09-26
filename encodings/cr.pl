@@ -3,16 +3,29 @@
 placement(Placement, Cost) :-
     findall(I, image(I,_,_), Images), maxReplicas(Max), imagePlacement(Images, Placement, Cost, Max).
 
-iterativeDeepening(Placement, Cost, Index) :-
-    findall(I, image(I,_,_), Images), findall(N, node(N,_,_), Nodes),
-    maxReplicas(Max), time(iterativeDeepening(Images, Nodes, Placement, Cost, 1, Max)), !,
-    allocatedStorage(Placement,Alloc), assert(placedImages(Placement, Alloc, Cost)), 
-    time(index(Images, Placement, Index)).
+iterativeDeepening(Mode, Placement, Cost, Index) :-
+    imagesToPlace(Images), candidateNodes(Nodes), maxReplicas(Max), 
+    time(iterativeDeepening(Mode, Images, Nodes, Placement, Cost, 1, Max)), !,
+    allocatedStorage(Placement,Alloc), index(Images, Placement, Index),
+    assert(placedImages(Placement, Alloc, Cost)).
 
-iterativeDeepening(Images, Nodes, Placement, Cost, M, Max) :-
+imagesToPlace(Images) :-
+    findall((S,I), image(I,S,_), X), sort(X, TmpImages),
+    findall(I, member((S,I), TmpImages), Y), reverse(Y, Images). 
+
+candidateNodes(Nodes) :- 
+    findall(cand(C,N), node(N,_,C), Tmp), sort(Tmp, TmpNodes), findall(N, member(cand(_,N),TmpNodes), Nodes).
+
+iterativeDeepening(quick, Images, Nodes, Placement, Cost, M, Max) :-
+    M =< Max, \+ imagePlacement(Images, Nodes, Placement, Cost, M), NewM is M+1,
+    iterativeDeepening(quick, Images, Nodes, Placement, Cost, NewM, Max).
+iterativeDeepening(quick, Images, Nodes, Placement, Cost, M, Max) :-
+    M =< Max, imagePlacement(Images, Nodes, Placement, Cost, M).
+
+iterativeDeepening(best, Images, Nodes, Placement, Cost, M, Max) :-
     M =< Max, \+ bestPlacement(Images, Nodes, Placement, Cost, M), NewM is M+1,
-    iterativeDeepening(Images, Nodes, Placement, Cost, NewM, Max).
-iterativeDeepening(Images, Nodes, Placement, Cost, M, Max) :-
+    iterativeDeepening(best, Images, Nodes, Placement, Cost, NewM, Max).
+iterativeDeepening(best, Images, Nodes, Placement, Cost, M, Max) :-
     M =< Max, bestPlacement(Images, Nodes, Placement, Cost, M).
 
 bestPlacement(Images, Nodes, Placement, Cost, Max) :- 
@@ -30,13 +43,12 @@ imagePlacement([],_,P,P,C,C,_).
 replicaPlacement(I, Nodes, P, P, C, C, _) :- transferTimesOk(I, Nodes, P).
 replicaPlacement(I, Nodes, Placement, NewPlacement, OldCost, NewCost, M) :-
     \+ transferTimesOk(I, Nodes, Placement), M>0, NewM is M-1,
-    image(I, Size, _), node(N, _, C), \+ member(at(I,N), Placement),
+    image(I, Size, _), member(N,Nodes), node(N, _, C), \+ member(at(I,N), Placement),
     storageOk(Placement, [], N, Size),
     TmpCost is C * Size + OldCost,
     replicaPlacement(I, Nodes, [at(I, N)|Placement],NewPlacement,TmpCost, NewCost, NewM).
 
-transferTimesOk(I, Nodes, P) :-
-    dif(P,[]), checkTransferTimes(I, Nodes,P).    
+transferTimesOk(I, Nodes, P) :- dif(P,[]), checkTransferTimes(I, Nodes,P).    
 
 checkTransferTimes(I, [N|Ns], P) :-
     member(at(I,M),P), 
