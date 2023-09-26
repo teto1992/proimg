@@ -24,7 +24,7 @@ reasoningStep([], _, _, KO, KO).
 
 ko(I, [N|Nodes], Placement) :-
     member(at(I,M),Placement), node(M,_,_),
-    image(I,_,Max), transferTime(I,M,N,T), T >= Max, !, % one source is enough
+    image(I,_,Max), transferTime(I,M,N,T), T > Max, !, % one source is enough
     ko(I, Nodes, Placement).
 ko(_, [], _).
 
@@ -98,7 +98,7 @@ index([], _, _, I, I).
 
 source(I, [N|Nodes], P, OldIndex, NewIndex) :-
     member(at(I,M),P), 
-    image(I,_,Max), transferTime(I,M,N,T), T < Max, !, % one source is enough
+    image(I,_,Max), transferTime(I,M,N,T), T =< Max, !, % one source is enough
     updateIndex(I,N,M,OldIndex,TmpIndex),
     source(I, Nodes, P, TmpIndex, NewIndex).
 source(_, [], _, Index, Index).
