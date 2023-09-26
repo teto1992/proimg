@@ -17,16 +17,16 @@ crStep(KOImages) :-
     reasoningStep(Images, Nodes, Placement, [], KOImages).
 
 reasoningStep([I|Is], Nodes, Placement, OldKO, NewKO) :-
-    ko(I, Nodes, Placement), reasoningStep(Is, Nodes, Placement, [I|OldKO], NewKO).
+   ok(I, Nodes, Placement), reasoningStep(Is, Nodes, Placement, OldKO, NewKO).
 reasoningStep([I|Is], Nodes, Placement, OldKO, NewKO) :-
-   \+ ko(I, Nodes, Placement), reasoningStep(Is, Nodes, Placement, OldKO, NewKO).
+   \+ ok(I, Nodes, Placement), reasoningStep(Is, Nodes, Placement, [I|OldKO], NewKO).
 reasoningStep([], _, _, KO, KO).
 
-ko(I, [N|Nodes], Placement) :-
+ok(I, [N|Nodes], Placement) :-
     member(at(I,M),Placement), node(M,_,_),
-    image(I,_,Max), transferTime(I,M,N,T), T > Max, !, % one source is enough
-    ko(I, Nodes, Placement).
-ko(_, [], _).
+    image(I,_,Max), transferTime(I,M,N,T), T =< Max, !, % one source is enough
+    ok(I, Nodes, Placement).
+ok(_, [], _).
 
 imagesToPlace(Images) :-
     findall((S,I), image(I,S,_), X), sort(X, TmpImages), findall(I, member((S,I), TmpImages), Y), reverse(Y, Images). 
