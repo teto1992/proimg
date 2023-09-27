@@ -1,5 +1,22 @@
 :-consult('input.pl').
 
+crStep(KOImages) :- 
+    findall(N, node(N,_,_), Nodes), imagesToPlace(Images),
+    % TODO: identify new images
+    placedImages(Placement, Alloc, _), 
+    reasoningStep(Images, Nodes, Placement, Alloc, [], KOImages).
+
+% TODO: identify:
+% - nodes for which storage is not enough
+% - crashed nodes
+% - link QoS degradations
+reasoningStep([I|Is], Nodes, Placement, Alloc, OldKO, NewKO) :-
+    checkTransferTimes(I,Nodes,Placement), !,
+    reasoningStep(Is, Nodes, Placement, Alloc, OldKO, NewKO).
+reasoningStep([I|Is], Nodes, Placement, Alloc, OldKO, NewKO) :-
+    reasoningStep(Is, Nodes, Placement, Alloc, [I|OldKO], NewKO).
+reasoningStep([], _, _, _, KO, KO).
+
 placement(Placement, Cost) :-
     findall(I, image(I,_,_), Images), findall(N, node(N,_,_), Nodes),
     maxReplicas(Max), imagePlacement(Images, Nodes, Placement, Cost, Max).
@@ -9,24 +26,6 @@ iterativeDeepening(Mode, Placement, Cost) :-
     time(iterativeDeepening(Mode, Images, Nodes, Placement, Cost, 1, Max)), !,
     allocatedStorage(Placement,Alloc), %index(Images, Placement, Index),
     assert(placedImages(Placement, Alloc, Cost)).
-
-% crStep([at(alpine, n12), at(alpine, n6), at(alpine, n0), at(alpine, n3), at(busybox, n12), at(busybox, n6), at(busybox, n0), at(busybox, n3)], OkP, KOs).
-crStep(KOImages) :- 
-    findall(N, node(N,_,_), Nodes), imagesToPlace(Images),
-    placedImages(Placement, _, _), 
-    reasoningStep(Images, Nodes, Placement, [], KOImages).
-
-reasoningStep([I|Is], Nodes, Placement, OldKO, NewKO) :-
-   ok(I, Nodes, Placement), reasoningStep(Is, Nodes, Placement, OldKO, NewKO).
-reasoningStep([I|Is], Nodes, Placement, OldKO, NewKO) :-
-   \+ ok(I, Nodes, Placement), reasoningStep(Is, Nodes, Placement, [I|OldKO], NewKO).
-reasoningStep([], _, _, KO, KO).
-
-ok(I, [N|Nodes], Placement) :-
-    member(at(I,M),Placement), node(M,_,_),
-    image(I,_,Max), transferTime(I,M,N,T), T =< Max, !, % one source is enough
-    ok(I, Nodes, Placement).
-ok(_, [], _).
 
 imagesToPlace(Images) :-
     findall((S,I), image(I,S,_), X), sort(X, TmpImages), findall(I, member((S,I), TmpImages), Y), reverse(Y, Images). 
