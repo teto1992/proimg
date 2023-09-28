@@ -11,7 +11,7 @@ reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
     image(I, Size, _), checkTransferTimes(I, Nodes, TmpPOk), checkStorage(I, Size, TmpPOk, Alloc), !, 
     reasoningStep(Is, Nodes, P, TmpPOk, NewPOk, Alloc, KO).
 reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
-    % \+ (checkTransferTimes(I,Nodes,Placement), checkStorage(I, Placement, Alloc)),
+    % \+ (image(I,Size, _), checkTransferTimes(I,Nodes,Placement), checkStorage(I, Placement, Alloc)),
     reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
 reasoningStep([], _, _, POk, POk, _, []).
 
