@@ -1,21 +1,28 @@
 :-consult('input.pl').
 
-crStep(KOImages) :- 
+crStep(KOImages, POk) :- 
     findall(N, node(N,_,_), Nodes), imagesToPlace(Images),
-    % TODO: identify new images
-    placedImages(Placement, Alloc, _), 
-    reasoningStep(Images, Nodes, Placement, Alloc, [], KOImages).
+    placedImages(P, Alloc, _), 
+    reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages).
 
-% TODO: identify:
-% - nodes for which storage is not enough
-% - crashed nodes
-% - link QoS degradations
-reasoningStep([I|Is], Nodes, Placement, Alloc, OldKO, NewKO) :-
-    checkTransferTimes(I,Nodes,Placement), !,
-    reasoningStep(Is, Nodes, Placement, Alloc, OldKO, NewKO).
-reasoningStep([I|Is], Nodes, Placement, Alloc, OldKO, NewKO) :-
-    reasoningStep(Is, Nodes, Placement, Alloc, [I|OldKO], NewKO).
-reasoningStep([], _, _, _, KO, KO).
+reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
+    findall(at(I,N), member(at(I,N), P), INs), append(INs, POk, TmpPOk),
+    image(I, Size, _), checkTransferTimes(I, Nodes, TmpPOk), checkStorage(I, Size, TmpPOk, Alloc), !, 
+    reasoningStep(Is, Nodes, P, TmpPOk, NewPOk, Alloc, KO).
+reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
+     %\+ (checkTransferTimes(I,Nodes,Placement), checkStorage(I, Placement, Alloc)),
+    reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
+reasoningStep([], _, _, POk, POk, _, []).
+
+
+checkStorage(I, Size, Placement, Alloc) :-
+    findall(N, member(at(I,N), Placement), Nodes), 
+    checkStorage(I, Size, Nodes, Placement, Alloc).
+
+checkStorage(I, Size, [N|Ns], Placement, Alloc) :-
+    storageOk(Placement, Alloc, N, Size), 
+    checkStorage(I, Size, Ns, Placement, Alloc).
+checkStorage(_, _, [], _, _). 
 
 placement(Placement, Cost) :-
     findall(I, image(I,_,_), Images), findall(N, node(N,_,_), Nodes),
@@ -24,7 +31,7 @@ placement(Placement, Cost) :-
 iterativeDeepening(Mode, Placement, Cost) :-
     imagesToPlace(Images), candidateNodes(Nodes), maxReplicas(Max), 
     time(iterativeDeepening(Mode, Images, Nodes, Placement, Cost, 1, Max)), !,
-    allocatedStorage(Placement,Alloc), %index(Images, Placement, Index),
+    allocatedStorage(Placement,Alloc), 
     assert(placedImages(Placement, Alloc, Cost)).
 
 imagesToPlace(Images) :-
