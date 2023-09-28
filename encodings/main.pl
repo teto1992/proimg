@@ -1,9 +1,10 @@
 :-consult('input.pl').
 
-crStep(KOImages, POk) :- 
+crStep(KOImages, NewPlacement) :- 
     findall(N, node(N,_,_), Nodes), imagesToPlace(Images),
     placedImages(P, Alloc, _), 
-    reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages).
+    reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
+    maxReplicas(Max), imagePlacement(KOImages, Nodes, POk, NewPlacement, 0, _, Max).
 
 reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
     findall(at(I,N), member(at(I,N), P), INs), append(INs, POk, TmpPOk),
@@ -13,7 +14,6 @@ reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
      %\+ (checkTransferTimes(I,Nodes,Placement), checkStorage(I, Placement, Alloc)),
     reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
 reasoningStep([], _, _, POk, POk, _, []).
-
 
 checkStorage(I, Size, Placement, Alloc) :-
     findall(N, member(at(I,N), Placement), Nodes), 
