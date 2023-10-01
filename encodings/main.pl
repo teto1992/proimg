@@ -1,7 +1,6 @@
 :- consult('input.pl').
 :- dynamic(placedImages/3).
 
-
 crStep(none, [], Placement, Cost) :-
     \+ placedImages(_,_,_), 
     iterativeDeepening(quick, Placement, Cost).
@@ -104,23 +103,3 @@ storageOk(Placement, Alloc, N, Size) :-
 usedHw(P, N, TotUsed) :- findall(S, (member(at(I,N), P), image(I,S,_)), Used), sum_list(Used, TotUsed).
 
 allocatedStorage(P, Alloc) :- findall((N,S), (member(at(I,N), P), image(I,S,_)), Alloc).
-
-index(Images, Placement, Index) :- 
-    findall(N, node(N,_,_), Nodes), index(Images, Nodes, Placement, [], Index).
-
-index([I|Is], Nodes, Placement, OldIndex, NewIndex) :-
-    source(I, Nodes, Placement, OldIndex, TmpIndex), index(Is, Nodes, Placement, TmpIndex, NewIndex).
-index([], _, _, I, I).
-
-source(I, [N|Nodes], P, OldIndex, NewIndex) :-
-    member(at(I,M),P), 
-    image(I,_,Max), transferTime(I,M,N,T), T =< Max, !, % one source is enough
-    updateIndex(I,N,M,OldIndex,TmpIndex),
-    source(I, Nodes, P, TmpIndex, NewIndex).
-source(_, [], _, Index, Index).
-
-updateIndex(I,N,M,Index,[i(N, [src(I,M)])|Index]) :-
-    \+ member(i(N,_),Index).
-updateIndex(I,N,M,OldIndex,NewIndex) :-
-    member(i(N,Sources),OldIndex),
-    select(i(N,Sources),OldIndex, i(N,[src(I,M)|Sources]), NewIndex).
