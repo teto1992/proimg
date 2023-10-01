@@ -1,11 +1,15 @@
-:-consult('input.pl').
+:- consult('input.pl').
+:- dynamic(placedImages/3).
 
-crStep(KOImages, NewPlacement) :- 
-    findall(N, node(N,_,_), Nodes), imagesToPlace(Images),
-    placedImages(P, Alloc, _), 
+
+crStep(none, [], Placement, Cost) :-
+    \+ placedImages(_,_,_), 
+    iterativeDeepening(quick, Placement, Cost).
+crStep(P, KOImages, NewPlacement, Cost) :- 
+    placedImages(P, Alloc, _), imagesToPlace(Images), candidateNodes(Nodes), 
     reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
-    maxReplicas(Max), imagePlacement(KOImages, Nodes, POk, NewPlacement, 0, _, Max).
-
+    iterativeDeepening(KOImages, Nodes, POk, NewPlacement, Cost).
+    
 reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
     findall(at(I,N), member(at(I,N), P), INs), append(INs, POk, TmpPOk),
     image(I, Size, _), checkTransferTimes(I, Nodes, TmpPOk), checkStorage(I, Size, TmpPOk, Alloc), !, 
@@ -15,18 +19,15 @@ reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
     reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
 reasoningStep([], _, _, POk, POk, _, []).
 
-checkStorage(I, Size, Placement, Alloc) :-
-    findall(N, member(at(I,N), Placement), Nodes), 
-    checkStorage(I, Size, Nodes, Placement, Alloc).
-
-checkStorage(I, Size, [N|Ns], Placement, Alloc) :-
-    storageOk(Placement, Alloc, N, Size), 
-    checkStorage(I, Size, Ns, Placement, Alloc).
-checkStorage(_, _, [], _, _). 
-
 placement(Placement, Cost) :-
     findall(I, image(I,_,_), Images), findall(N, node(N,_,_), Nodes),
     maxReplicas(Max), imagePlacement(Images, Nodes, Placement, Cost, Max).
+
+% TODO: add correct cost computation to reasoning step
+% TODO: add correct resource allocation to reasoning step
+iterativeDeepening(KOImages, Nodes, PartialPlacement, NewPlacement, Cost) :-
+    maxReplicas(Max), imagePlacement(KOImages, Nodes, PartialPlacement, NewPlacement, 0, Cost, Max),
+    retract(placedImages(_,_,_)), assert(placedImages(NewPlacement, [], Cost)).
 
 iterativeDeepening(Mode, Placement, Cost) :-
     imagesToPlace(Images), candidateNodes(Nodes), maxReplicas(Max), 
@@ -86,6 +87,15 @@ transferTime(Image, Src, Dest, T) :-
     link(Src, Dest, Latency, Bandwidth),
     T is Size * 8 / Bandwidth + Latency.
 transferTime(_, N, N, 0).
+
+checkStorage(I, Size, Placement, Alloc) :-
+    findall(N, member(at(I,N), Placement), Nodes), 
+    checkStorage(I, Size, Nodes, Placement, Alloc).
+
+checkStorage(I, Size, [N|Ns], Placement, Alloc) :-
+    storageOk(Placement, Alloc, N, Size), 
+    checkStorage(I, Size, Ns, Placement, Alloc).
+checkStorage(_, _, [], _, _). 
 
 storageOk(Placement, Alloc, N, Size) :- 
     node(N, Storage, _), findall(S, member((N,S), Alloc), OldAllocs), sum_list(OldAllocs, OldAlloc),
