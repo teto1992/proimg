@@ -5,13 +5,15 @@
 :- dynamic(link/4).
 :- dynamic(maxReplicas/1).
 
-crStep([], [], Placement, Cost) :-
-    \+ placedImages(_,_,_), iterativeDeepening(quick, Placement, Cost).
+/* Identify KOImages and builds a new Placement with associated cost, by keeping the partial POk as is*/
 crStep(P, KOImages, NewPlacement, Cost) :- 
     placedImages(P, Alloc, _), imagesToPlace(Images), candidateNodes(Nodes), 
     reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
     crID(KOImages, Nodes, POk, NewPlacement, Cost).
-    
+crStep([], [], Placement, Cost) :- /* base case: ex-novo placement */
+    iterativeDeepening(quick, Placement, Cost).
+
+/* Identify images to be replaced (i.e. new images or images with problems on storage or transfer times) */
 reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
     findall(at(I,N), member(at(I,N), P), INs), append(INs, POk, TmpPOk),
     image(I, Size, _), checkTransferTimes(I, Nodes, TmpPOk), checkStorage(I, Size, TmpPOk, Alloc), !, 
@@ -21,10 +23,13 @@ reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
     reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
 reasoningStep([], _, _, POk, POk, _, []).
 
+/* Non-deterministic placement */
 placement(Placement, Cost) :-
     findall(I, image(I,_,_), Images), findall(N, node(N,_,_), Nodes),
     maxReplicas(Max), imagePlacement(Images, Nodes, Placement, Cost, Max).
 
+/* iterative deepening for the continuos reasoning */
+% TODO: capire come mai non trova la stessa soluzione rispetto alla chiamata "a scarico" 
 crID(KOImages, Nodes, PartialPlacement, NewPlacement, Cost) :-
     maxReplicas(Max), imagePlacement(KOImages, Nodes, PartialPlacement, NewPlacement, 0, _, Max),
     cost(NewPlacement, Cost), allocatedStorage(NewPlacement,Alloc),
@@ -33,6 +38,7 @@ crID([],_,P,P,Cost) :-
     allocatedStorage(P,Alloc),
     retract(placedImages(_,_,_)), assert(placedImages(P, Alloc, Cost)).
 
+/*Places images one by one without exceeding MaxReplicas for each image*/
 iterativeDeepening(Mode, Placement, Cost) :-
     imagesToPlace(Images), candidateNodes(Nodes), maxReplicas(Max), 
     time(iterativeDeepening(Mode, Images, Nodes, Placement, _, 1, Max)), !,
