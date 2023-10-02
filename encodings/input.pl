@@ -1,8 +1,9 @@
 maxReplicas(5).
 
+
 image(alpine, 5, 300).
-%image(busybox, 5, 300).
-image(busybox2, 0, 300).
+image(busybox, 5, 300).
+image(busybox2, 1, 300).
 
 % node(NodeId, Storage, Cost)
 node(n0,16,3).

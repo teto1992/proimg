@@ -1,13 +1,16 @@
 :- consult('input.pl').
 :- dynamic(placedImages/3).
+:- dynamic(image/3).
+:- dynamic(node/3).
+:- dynamic(link/4).
+:- dynamic(maxReplicas/1).
 
-crStep(none, [], Placement, Cost) :-
-    \+ placedImages(_,_,_), 
-    iterativeDeepening(quick, Placement, Cost).
+crStep([], [], Placement, Cost) :-
+    \+ placedImages(_,_,_), iterativeDeepening(quick, Placement, Cost).
 crStep(P, KOImages, NewPlacement, Cost) :- 
     placedImages(P, Alloc, _), imagesToPlace(Images), candidateNodes(Nodes), 
     reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
-    iterativeDeepening(KOImages, Nodes, POk, NewPlacement, Cost).
+    crID(KOImages, Nodes, POk, NewPlacement, Cost).
     
 reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
     findall(at(I,N), member(at(I,N), P), INs), append(INs, POk, TmpPOk),
@@ -22,17 +25,22 @@ placement(Placement, Cost) :-
     findall(I, image(I,_,_), Images), findall(N, node(N,_,_), Nodes),
     maxReplicas(Max), imagePlacement(Images, Nodes, Placement, Cost, Max).
 
-% TODO: add correct cost computation to reasoning step
-% TODO: add correct resource allocation to reasoning step
-iterativeDeepening(KOImages, Nodes, PartialPlacement, NewPlacement, Cost) :-
-    maxReplicas(Max), imagePlacement(KOImages, Nodes, PartialPlacement, NewPlacement, 0, Cost, Max),
-    retract(placedImages(_,_,_)), assert(placedImages(NewPlacement, [], Cost)).
+crID(KOImages, Nodes, PartialPlacement, NewPlacement, Cost) :-
+    maxReplicas(Max), imagePlacement(KOImages, Nodes, PartialPlacement, NewPlacement, 0, _, Max),
+    cost(NewPlacement, Cost), allocatedStorage(NewPlacement,Alloc),
+    retract(placedImages(_,_,_)), assert(placedImages(NewPlacement, Alloc, Cost)).
+crID([],_,P,P,Cost) :-  
+    allocatedStorage(P,Alloc),
+    retract(placedImages(_,_,_)), assert(placedImages(P, Alloc, Cost)).
 
 iterativeDeepening(Mode, Placement, Cost) :-
     imagesToPlace(Images), candidateNodes(Nodes), maxReplicas(Max), 
-    time(iterativeDeepening(Mode, Images, Nodes, Placement, Cost, 1, Max)), !,
-    allocatedStorage(Placement,Alloc), 
+    time(iterativeDeepening(Mode, Images, Nodes, Placement, _, 1, Max)), !,
+    cost(Placement, Cost), allocatedStorage(Placement,Alloc), 
     assert(placedImages(Placement, Alloc, Cost)).
+
+cost(P, Cost) :- 
+    findall(CS, (member(at(I,N), P), image(I,S,_), node(N,_,C), CS is C*S), Costs), sum_list(Costs, Cost).
 
 imagesToPlace(Images) :-
     findall((S,I), image(I,S,_), X), sort(X, TmpImages), findall(I, member((S,I), TmpImages), Y), reverse(Y, Images). 
@@ -68,7 +76,7 @@ replicaPlacement(I, Nodes, P, P, C, C, _) :- transferTimesOk(I, Nodes, P).
 replicaPlacement(I, Nodes, Placement, NewPlacement, OldCost, NewCost, M) :-
     \+ transferTimesOk(I, Nodes, Placement), M>0, NewM is M-1,
     image(I, Size, _), member(N,Nodes), node(N, _, C), \+ member(at(I,N), Placement),
-    storageOk(Placement, [], N, Size),
+    storageOk(Placement, N, Size),
     TmpCost is C * Size + OldCost,
     replicaPlacement(I, Nodes, [at(I, N)|Placement], NewPlacement, TmpCost, NewCost, NewM).
 
@@ -92,11 +100,12 @@ checkStorage(I, Size, Placement, Alloc) :-
     checkStorage(I, Size, Nodes, Placement, Alloc).
 
 checkStorage(I, Size, [N|Ns], Placement, Alloc) :-
-    storageOk(Placement, Alloc, N, Size), 
+    storageOk(Placement, N, Size), 
     checkStorage(I, Size, Ns, Placement, Alloc).
 checkStorage(_, _, [], _, _). 
 
-storageOk(Placement, Alloc, N, Size) :- 
+storageOk(Placement, N, Size) :- 
+    (placedImages(_, Alloc, _) ; (\+ placedImages(_,_,_), Alloc = [])),
     node(N, Storage, _), findall(S, member((N,S), Alloc), OldAllocs), sum_list(OldAllocs, OldAlloc),
     usedHw(Placement, N, UsedHw), Storage + OldAlloc - UsedHw >= Size.
 
