@@ -1,11 +1,11 @@
 maxReplicas(5).
 
-
+% image(Name, Size in MB, MaxTime in ms)
 image(alpine, 5, 300).
 image(busybox, 5, 300).
 image(busybox2, 1, 300).
 
-% node(NodeId, Storage, Cost)
+% node(NodeId, Storage in MB, Cost per MB)
 node(n0,16,3).
 node(n1,2,2).
 node(n2,8,3).
@@ -26,7 +26,7 @@ node(n16,16,4).
 node(n17,64,4).
 node(n18,4,2).
 node(n19,32,2).
-% link(Src, Dest, Latency, Bandwidth)
+% link(Src, Dest, Latency in ms, Bandwidth in Megabit per second)
 link(n0,n1,100,1000).
 link(n0,n2,25,200).
 link(n0,n3,150,1000).
