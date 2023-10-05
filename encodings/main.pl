@@ -6,14 +6,14 @@
 :- dynamic(maxReplicas/1).
 
 /* Identify KOImages and builds a new Placement with associated cost, by keeping the partial POk as is*/
-crStep([], [], Placement, Cost) :-
-    iterativeDeepening(quick, Placement, Cost).
 crStep(P, KOImages, NewPlacement, Cost) :- 
     placedImages(P, Alloc, _), P \= [], !,
     imagesToPlace(Images),
     candidateNodes(Nodes),
     reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
     crID(KOImages, Nodes, POk, NewPlacement, Cost).
+crStep([], [], Placement, Cost) :-
+    iterativeDeepening(quick, Placement, Cost).
 
 /* Identify images to be replaced (i.e. new images or images with problems on storage or transfer times) */
 reasoningStep([], _, _, POk, POk, _, []).
@@ -76,10 +76,12 @@ imagesToPlace(Images) :-
     sort(0, @>, X, SortedImagesDescending),
     findall(I, member((S,I), SortedImagesDescending), Images).
 
+% retrieve the candidate nodes
+get_id(cand(_,B),B).
 candidateNodes(Nodes) :- 
     findall(cand(C,N), node(N,_,C), Tmp),
-    sort(Tmp, TmpNodes),
-    findall(N, member(cand(_,N),TmpNodes), Nodes).
+    sort(0, @<, Tmp, SortedTmpDes),
+    maplist(get_id, SortedTmpDes, Nodes).
 
 iterativeDeepening(quick, Images, Nodes, Placement, Cost, M, Max) :-
     M =< Max,
@@ -182,4 +184,3 @@ allocatedStorage_([], L, L).
 allocatedStorage_([at(I,N) | T], CP, Alloc):-
     image(I,S,_),
     allocatedStorage_(T, [(N,S) | CP], Alloc).
-    
