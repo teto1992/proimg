@@ -8,13 +8,14 @@
 
 /* Identify KOImages and builds a new Placement with associated cost, by keeping the partial POk as is*/
 crStep(P, KOImages, NewPlacement, Cost) :- 
-    placedImages(P, Alloc, _), dif(P,[]), !,
+    placedImages(P, Alloc, _), dif(P,[]), !, writeln('cr'),
     imagesToPlace(Images),
     candidateNodes(Nodes),
     reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
     crID(KOImages, Nodes, POk, NewPlacement, Cost).
 % useful for standalone executions    
 crStep([], [], Placement, Cost) :- 
+    writeln('exhaustive'),
     iterativeDeepening(quick, Placement, Cost).
 
 /* Identify images to be replaced (i.e. new images or images with problems on storage or transfer times) */
