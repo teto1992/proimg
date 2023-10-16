@@ -46,7 +46,7 @@ iterativeDeepening(Mode, Placement, Cost) :-
     imagesToPlace(Images),
     candidateNodes(Nodes),
     maxReplicas(Max), 
-    time(iterativeDeepening(Mode, Images, Nodes, Placement, _, 1, Max)),
+    iterativeDeepening(Mode, Images, Nodes, Placement, _, 1, Max),
     cost(Placement, Cost),
     allocatedStorage(Placement,Alloc),
     ( placedImages(_,_,_) -> retract(placedImages(_,_,_)) ; true),

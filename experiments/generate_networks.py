@@ -42,7 +42,6 @@ def generate_infrastructure_barabasi_albert(
         for current_m in m_list:
             for seed in random_seeds:
                 G = nx.generators.random_graphs.barabasi_albert_graph(number_of_nodes,current_m,seed=seed)
-                #G = nx.generators.complete_graph(number_of_nodes)
 
                 for i in range(0,number_of_nodes):
                     edge = random.random() > 0.2 # 80% of the nodes in the edge, 20% in the cloud
@@ -62,7 +61,6 @@ def generate_infrastructure_barabasi_albert(
 
                 paths = dict(nx.all_pairs_dijkstra(G, weight='latency'))
 
-
                 f = open(f"{number_of_nodes}/b_a_{number_of_nodes}_{current_m}_{seed}.pl","w+")
 
                 for i in range(0,number_of_nodes):
@@ -76,6 +74,7 @@ def generate_infrastructure_barabasi_albert(
                     newlink='link(n'+str(j)+',n'+str(i)+','+str(link['latency'])+','+str(link['bandwidth'])+').\n'
                     f.write(newlink)
 
+                # complete graph with routing latency and bandwidth
                 for i in range(0,number_of_nodes):
                     for j in range(0,number_of_nodes):
                         if not ((i,j) in G.edges()):
@@ -85,8 +84,10 @@ def generate_infrastructure_barabasi_albert(
                             f.write(newlink)
                             newlink='link(n'+str(j)+',n'+str(i)+','+str(latency)+','+str(bandwidth)+').\n'
                             f.write(newlink)
-
+                            G.edges[i,j]['latency'] = latency
+                            G.edges[i,j]['bandwidth'] = bandwidth
                 f.close()
+    return G
 
 def path_bandwidth(G,path):
     min_bandwidth = 1000
