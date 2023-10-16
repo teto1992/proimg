@@ -7,12 +7,13 @@
 
 /* Identify KOImages and builds a new Placement with associated cost, by keeping the partial POk as is*/
 crStep(P, KOImages, NewPlacement, Cost) :- 
-    placedImages(P, Alloc, _), P \= [], !,
+    placedImages(P, Alloc, _), dif(P,[]), !,
     imagesToPlace(Images),
     candidateNodes(Nodes),
     reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
     crID(KOImages, Nodes, POk, NewPlacement, Cost).
-crStep([], [], Placement, Cost) :-
+% useful for standalone executions    
+crStep([], [], Placement, Cost) :- 
     iterativeDeepening(quick, Placement, Cost).
 
 /* Identify images to be replaced (i.e. new images or images with problems on storage or transfer times) */
@@ -26,13 +27,6 @@ reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
     reasoningStep(Is, Nodes, P, TmpPOk, NewPOk, Alloc, KO).
 reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
     reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
-
-/* Deterministic placement, currently unused */
-% placement(Placement, Cost) :-
-%     findall(I, image(I,_,_), Images),
-%     findall(N, node(N,_,_), Nodes),
-%     maxReplicas(Max),
-%     imagePlacement(Images, Nodes, Placement, Cost, Max).
 
 /* iterative deepening for the continuos reasoning */
 crID(KOImages, Nodes, PartialPlacement, NewPlacement, Cost) :-
@@ -99,7 +93,6 @@ iterativeDeepening(best, Images, Nodes, Placement, Cost, M, Max) :-
     NewM is M + 1,
     iterativeDeepening(best, Images, Nodes, Placement, Cost, NewM, Max).
 
-% da rivedere
 bestPlacement(Images, Nodes, Placement, Cost, Max) :- 
     imagePlacement(Images, Nodes, Placement, Cost, Max), 
     \+ ( imagePlacement(Images, Nodes, P2, C2, Max), dif(Placement, P2), C2 < Cost ).
@@ -112,7 +105,7 @@ imagePlacement([I|Is], Nodes, OldPlacement, NewPlacement, OldCost, NewCost, Max)
     imagePlacement(Is,Nodes,TmpPlacement,NewPlacement,TmpCost,NewCost,Max).
 
 replicaPlacement(I, Nodes, P, P, C, C, _) :-
-    transferTimesOk(I, Nodes, P).
+    transferTimesOk(I, Nodes, P), !. % green cut
 replicaPlacement(I, Nodes, Placement, NewPlacement, OldCost, NewCost, M) :-
     % \+ transferTimesOk(I, Nodes, Placement),
     M > 0,
@@ -126,7 +119,7 @@ replicaPlacement(I, Nodes, Placement, NewPlacement, OldCost, NewCost, M) :-
     replicaPlacement(I, Nodes, [at(I, N)|Placement], NewPlacement, TmpCost, NewCost, NewM).
 
 transferTimesOk(I, Nodes, P) :-
-    P \= [],
+    dif(P,[]),
     checkTransferTimes(I, Nodes,P).    
 
 checkTransferTimes(_, [], _).
@@ -174,7 +167,7 @@ usedHw_([at(I,N) | T], N, TempUsed, Used):-
     TempUsed1 is TempUsed + S,
     usedHw_(T, N, TempUsed1, Used).
 usedHw_([at(_,N0) | T], N1, TempUsed, Used):-
-    N0 \= N1,
+    dif(N0,N1),
     usedHw_(T, N1, TempUsed, Used).
 
 % Computes the allocated storage for the current placement Placemetn
