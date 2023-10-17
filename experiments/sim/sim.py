@@ -73,7 +73,7 @@ def generate_infrastructure_barabasi_albert(number_of_nodes, m):
         G.nodes[i]['cost'] = str(random.randint(1,5))
 
     for (i,j) in G.edges():
-        G.edges[i,j]['latency'] = int(random.randint(3,50))#,25,50,100,150]))
+        G.edges[i,j]['latency'] = int(random.randint(3,80))#,25,50,100,150]))
         G.edges[i,j]['bandwidth'] = int(random.randint(1,250))# , 50, 100, 200, 500, 1000]))
         G.edges[i,j]['physical'] = True
 
@@ -105,7 +105,7 @@ def changeInfra(G):
                 G.edges[i,j]['bandwidth'] += int(change * G.edges[i,j]['bandwidth'])
         else: # virtual link
             G.remove_edge(i,j)
-            
+
     # complete graph with routing latency and bandwidth
     G = routing(G)
 
@@ -130,7 +130,6 @@ def simulate(n, m, epochs):
                 print('Elapsed time: '+str(end-start))
                 print(result[0]['KOImages'])
                 print(result[0]['Cost'])
-                #print(result[0]['NewPlacement'])
 
                 changeInfra(G)
                 write_to_file(G, "infra.pl")
@@ -138,4 +137,4 @@ def simulate(n, m, epochs):
     mqi.stop()
                     
 
-simulate(100,3,50)
+simulate(25,3,1000)
