@@ -137,4 +137,4 @@ def simulate(n, m, epochs):
     mqi.stop()
                     
 
-simulate(25,3,1000)
+simulate(100,3,100)
