@@ -3,22 +3,18 @@ import json
 import argparse
 import networkx as nx
 import numpy as np
+import time 
 import random
 import math
+import json
 from swiplserver import PrologMQI, PrologThread
 
-
-def path_bandwidth(G,path):
-    min_bandwidth = math.inf
-    for i in range(0,len(path)-1):
-        bandwidth = G.edges[path[i],path[i+1]]['bandwidth']
-        if (bandwidth < min_bandwidth):
-            min_bandwidth = bandwidth
-    return min_bandwidth
 
 def write_to_file(G, filename):
 
     f = open(filename,"w")
+
+    f.write('maxReplicas('+str(50)+').\n')
 
     for i in range(0,G.number_of_nodes()):
         if G.nodes[i]['on']:
@@ -34,6 +30,14 @@ def write_to_file(G, filename):
         f.write(newlink)
     
     f.close()
+
+def path_bandwidth(G,path):
+    min_bandwidth = math.inf
+    for i in range(0,len(path)-1):
+        bandwidth = G.edges[path[i],path[i+1]]['bandwidth']
+        if (bandwidth < min_bandwidth):
+            min_bandwidth = bandwidth
+    return min_bandwidth
 
 def routing(G):
     paths = dict(nx.all_pairs_dijkstra(G, weight='latency'))
@@ -51,7 +55,7 @@ def routing(G):
 
     return G
 
-def generate_infrastructure_barabasi_albert(number_of_nodes : int, m : int) -> None:
+def generate_infrastructure_barabasi_albert(number_of_nodes, m):
 
     G = nx.generators.random_graphs.barabasi_albert_graph(number_of_nodes,m,seed=481183)
 
@@ -69,8 +73,8 @@ def generate_infrastructure_barabasi_albert(number_of_nodes : int, m : int) -> N
         G.nodes[i]['cost'] = str(random.randint(1,5))
 
     for (i,j) in G.edges():
-        G.edges[i,j]['latency'] = int(random.randint(3,100))#,25,50,100,150]))
-        G.edges[i,j]['bandwidth'] = int(random.randint(1,200))# , 50, 100, 200, 500, 1000]))
+        G.edges[i,j]['latency'] = int(random.randint(3,50))#,25,50,100,150]))
+        G.edges[i,j]['bandwidth'] = int(random.randint(1,250))# , 50, 100, 200, 500, 1000]))
         G.edges[i,j]['physical'] = True
 
     G = routing(G)
@@ -78,6 +82,8 @@ def generate_infrastructure_barabasi_albert(number_of_nodes : int, m : int) -> N
     return G
 
 def changeInfra(G):
+
+    # node crashes
     for i in range(0,G.number_of_nodes()):
         if G.nodes[i]['edge']:
             G.nodes[i]['on'] = random.random() > 0.1
@@ -85,41 +91,51 @@ def changeInfra(G):
             G.nodes[i]['on'] = random.random() > 0.001
         
     for (i,j) in G.edges():
+        # link variations
         if G.edges[i,j]['physical']:
+            # link degradation
             if random.random() > 0.5:
                 change = 0.25
                 G.edges[i,j]['latency'] += int(change * G.edges[i,j]['latency'])
                 G.edges[i,j]['bandwidth'] -= int(change * G.edges[i,j]['bandwidth'])
+            # link improvement
             else:
                 change = 0.25
                 G.edges[i,j]['latency'] -= int(change * G.edges[i,j]['latency'])
                 G.edges[i,j]['bandwidth'] += int(change * G.edges[i,j]['bandwidth'])
         else: # virtual link
             G.remove_edge(i,j)
-
+            
+    # complete graph with routing latency and bandwidth
     G = routing(G)
 
-    write_to_file(G, f"infra.pl")
+    write_to_file(G, "infra.pl")
 
 
+def simulate(n, m, epochs):
 
-def simulate(n : int, m : int, epochs : int):
     G = generate_infrastructure_barabasi_albert(n,m)
-    write_to_file(G, f"infra.pl")
+    write_to_file(G, "infra.pl")
+
     with PrologMQI() as mqi:
         with mqi.create_thread() as prolog_thread:
             for i in range(epochs):
+                print(str(i)+".")
 
                 prolog_thread.query("[main]")
                 # TODO: handle timeout
-                result = prolog_thread.query("once(crStep(P, KOImages, NewPlacement, Cost))",query_timeout_seconds = 100)
-                print(result)
+                start = time.time()
+                result = prolog_thread.query("once(crStep(P, KOImages, NewPlacement, Cost))",query_timeout_seconds = 300)
+                end = time.time()
+                print('Elapsed time: '+str(end-start))
+                print(result[0]['KOImages'])
+                print(result[0]['Cost'])
+                #print(result[0]['NewPlacement'])
 
                 changeInfra(G)
-                write_to_file(G, f"infra.pl")
+                write_to_file(G, "infra.pl")
 
     mqi.stop()
                     
 
-
-simulate(100,2,20)
+simulate(100,3,50)

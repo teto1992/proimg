@@ -1,3 +1,6 @@
+:- set_prolog_flag(answer_write_options,[max_depth(0), spacing(next_argument)]).
+:- set_prolog_flag(stack_limit, 32 000 000 000).
+:- set_prolog_flag(last_call_optimisation, true).
 :- consult('infra.pl').
 :- consult('images.pl').
 :- dynamic(placedImages/3).
@@ -8,14 +11,13 @@
 
 /* Identify KOImages and builds a new Placement with associated cost, by keeping the partial POk as is*/
 crStep(P, KOImages, NewPlacement, Cost) :- 
-    placedImages(P, Alloc, _), dif(P,[]), !, writeln('cr'),
+    placedImages(P, Alloc, _), dif(P,[]), !,
     imagesToPlace(Images),
     candidateNodes(Nodes),
     reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
     crID(KOImages, Nodes, POk, NewPlacement, Cost).
 % useful for standalone executions    
 crStep([], [], Placement, Cost) :- 
-    writeln('exhaustive'),
     iterativeDeepening(quick, Placement, Cost).
 
 /* Identify images to be replaced (i.e. new images or images with problems on storage or transfer times) */
