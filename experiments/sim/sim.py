@@ -14,9 +14,11 @@ def write_to_file(G, filename):
 
     f = open(filename,"w")
 
-    f.write('maxReplicas('+str(50)+').\n')
+    f.write('maxReplicas('+str(30)+').\n')
 
-    for i in range(0,G.number_of_nodes()):
+    G.nodes[0]['on'] = False
+
+    for i in range(1,G.number_of_nodes()):
         if G.nodes[i]['on']:
             node = G.nodes[i]
             newnode = 'node(n'+str(i)+','+str(node['storage'])+','+str(node['cost'])+').\n'
@@ -67,14 +69,14 @@ def generate_infrastructure_barabasi_albert(number_of_nodes, m):
             G.nodes[i]['storage'] = random.choice([8,16,32])
         else:
             G.nodes[i]['edge'] = False
-            G.nodes[i]['storage'] = random.choice([128,256,512])
+            G.nodes[i]['storage'] = random.choice([64,128,256,512])
         
         G.nodes[i]['on'] = True
-        G.nodes[i]['cost'] = str(random.randint(1,5))
+        G.nodes[i]['cost'] = str(random.randint(1,10))
 
     for (i,j) in G.edges():
-        G.edges[i,j]['latency'] = int(random.randint(3,80))#,25,50,100,150]))
-        G.edges[i,j]['bandwidth'] = int(random.randint(1,250))# , 50, 100, 200, 500, 1000]))
+        G.edges[i,j]['latency'] = int(random.randint(1,80))#,25,50,100,150]))
+        G.edges[i,j]['bandwidth'] = int(random.randint(1,200))# , 50, 100, 200, 500, 1000]))
         G.edges[i,j]['physical'] = True
 
     G = routing(G)
@@ -88,7 +90,7 @@ def changeInfra(G):
         if G.nodes[i]['edge']:
             G.nodes[i]['on'] = random.random() > 0.1
         else:
-            G.nodes[i]['on'] = random.random() > 0.001
+            G.nodes[i]['on'] = random.random() > 0.01
         
     for (i,j) in G.edges():
         # link variations
@@ -117,24 +119,41 @@ def simulate(n, m, epochs):
     G = generate_infrastructure_barabasi_albert(n,m)
     write_to_file(G, "infra.pl")
 
+    times = []
+
     with PrologMQI() as mqi:
         with mqi.create_thread() as prolog_thread:
             for i in range(epochs):
-                print(str(i)+".")
+                print("Epoch:"+str(i)+".")
+                print('loading data')
+                if (i == 0):
+                    prolog_thread.query("[main],once(loadInfrastructure())")
+                else:
+                    prolog_thread.query("once(loadInfrastructure())")
+                print('data loaded')    
 
-                prolog_thread.query("[main]")
-                # TODO: handle timeout
-                start = time.time()
-                result = prolog_thread.query("once(crStep(P, KOImages, NewPlacement, Cost))",query_timeout_seconds = 300)
-                end = time.time()
-                print('Elapsed time: '+str(end-start))
-                print(result[0]['KOImages'])
-                print(result[0]['Cost'])
+                # TODO: handle timeout and false
+                print('Starting query')
+            
+                result = prolog_thread.query("once(crStep(A, B, NewPlacement, Cost, Time))",query_timeout_seconds = 600)
+                           
+                #print(result[0]['KOImages'])
+                # print(result[0]['Cost'])
+                # print(result[0]['NewPlacement'])
+                # print("time:"+ str(result[0]['Time']))    
 
+                times.append(result[0]['Time'])
+
+                print('Changing infrastructure')
                 changeInfra(G)
                 write_to_file(G, "infra.pl")
 
     mqi.stop()
+
+    print(sum(times)/len(times))
                     
 
-simulate(100,3,100)
+simulate(100,3,30)
+
+# 0.013873600000000012 no-cr
+# 0.005269033333333338 cr
