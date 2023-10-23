@@ -13,13 +13,13 @@ crStep(P, KOImages, NewPlacement, Cost, Time) :-
     placedImages(P, Alloc, _), dif(P,[]),  
     imagesToPlace(Images), networkNodes(Nodes),
     statistics(cputime, Start),
-    reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
-    iterativeDeepening(KOImages, Nodes, POk, NewPlacement, Cost),
+        reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
+        iterativeDeepening(KOImages, Nodes, POk, NewPlacement, Cost),
     statistics(cputime, End), Time is End - Start.
 crStep([], [], Placement, Cost, Time) :- 
     imagesToPlace(Images), networkNodes(Nodes),
     statistics(cputime, Start),
-    iterativeDeepening(Images, Nodes, [], Placement, Cost),
+        iterativeDeepening(Images, Nodes, [], Placement, Cost),
     statistics(cputime, End), Time is End - Start.
 
 /* Identify images to be replaced (i.e. new images or images with problems on storage or transfer times) */

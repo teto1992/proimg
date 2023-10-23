@@ -14,11 +14,11 @@ def write_to_file(G, filename):
 
     f = open(filename,"w")
 
-    f.write('maxReplicas('+str(30)+').\n')
+    f.write('maxReplicas('+str(50)+').\n')
 
-    G.nodes[0]['on'] = False
+    #G.nodes[0]['on'] = False
 
-    for i in range(1,G.number_of_nodes()):
+    for i in range(0,G.number_of_nodes()):
         if G.nodes[i]['on']:
             node = G.nodes[i]
             newnode = 'node(n'+str(i)+','+str(node['storage'])+','+str(node['cost'])+').\n'
@@ -75,7 +75,7 @@ def generate_infrastructure_barabasi_albert(number_of_nodes, m):
         G.nodes[i]['cost'] = str(random.randint(1,10))
 
     for (i,j) in G.edges():
-        G.edges[i,j]['latency'] = int(random.randint(1,80))#,25,50,100,150]))
+        G.edges[i,j]['latency'] = int(random.randint(1,50))#,25,50,100,150]))
         G.edges[i,j]['bandwidth'] = int(random.randint(1,200))# , 50, 100, 200, 500, 1000]))
         G.edges[i,j]['physical'] = True
 
@@ -124,27 +124,25 @@ def simulate(n, m, epochs):
     with PrologMQI() as mqi:
         with mqi.create_thread() as prolog_thread:
             for i in range(epochs):
-                print("Epoch:"+str(i)+".")
-                print('loading data')
+                print("Epoch:"+str(i))
                 if (i == 0):
                     prolog_thread.query("[main],once(loadInfrastructure())")
                 else:
-                    prolog_thread.query("once(loadInfrastructure())")
-                print('data loaded')    
+                    prolog_thread.query("once(loadInfrastructure())")  
 
                 # TODO: handle timeout and false
-                print('Starting query')
-            
-                result = prolog_thread.query("once(crStep(A, B, NewPlacement, Cost, Time))",query_timeout_seconds = 600)
-                           
-                #print(result[0]['KOImages'])
-                # print(result[0]['Cost'])
-                # print(result[0]['NewPlacement'])
-                # print("time:"+ str(result[0]['Time']))    
 
-                times.append(result[0]['Time'])
+                try:
+                    result = prolog_thread.query("once(crStep(P, KOImages, NewPlacement, Cost, Time))",query_timeout_seconds = 30)
+                    times.append(result[0]['Time'])
+                    #print(result[0]['KOImages'])
+                    # print(result[0]['Cost'])
+                    # print(result[0]['NewPlacement'])
+                    # print("time:"+ str(result[0]['Time']))    
+                except:
+                    print("timeout exceeded")
+                    continue
 
-                print('Changing infrastructure')
                 changeInfra(G)
                 write_to_file(G, "infra.pl")
 
@@ -153,7 +151,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(100,3,30)
+simulate(500,3,10)
 
-# 0.013873600000000012 no-cr
-# 0.005269033333333338 cr
