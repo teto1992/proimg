@@ -78,9 +78,17 @@ bestPlacement(Images, Nodes, PartialPlacement, Placement, Max) :-
     imagePlacement(Images, Nodes, PartialPlacement, Placement, Max), cost(Placement, Cost),
     \+ ( imagePlacement(Images, Nodes, PartialPlacement, P2, Max), dif(Placement, P2), cost(P2,C2), C2 < Cost ).
 
-% Computes placement cost
-cost(Placement, Cost) :-
-    findall(C, (member(at(_,N), Placement), node(N,_,C)), Costs), sum_list(Costs, Cost).
+% % Computes placement cost
+cost(L, Cost):-
+    cost_(L, 0, Cost).
+cost_([], C, C).
+cost_([at(I,N) | T], C0, C):-
+    image(I, S ,_),
+    node(N, _ ,NC),
+    C1 is NC * S + C0,
+    cost_(T, C1, C). 
+% cost(Placement, Cost) :-
+%     findall(C, (member(at(_,N), Placement), node(N,_,C)), Costs), sum_list(Costs, Cost).
 
 % selects the images starting from the the ones with the highest
 % associated capacity
@@ -169,10 +177,31 @@ storageOk(Placement, N, Size) :-
 
 % Computes the hardware used by the node Node in the placement P
 % and unifies this value with TotUsed
-usedHw(P, N, TotUsed) :- findall(S, (member(at(I,N), P), image(I,S,_)), Used), sum_list(Used, TotUsed).
+usedHw(P, Node, TotUsed):-
+    usedHw_(P, Node, 0, TotUsed).
+usedHw_([], _, U, U).
+usedHw_([at(I,N) | T], N, TempUsed, Used):-
+    image(I,S,_),
+    TempUsed1 is TempUsed + S,
+    usedHw_(T, N, TempUsed1, Used).
+usedHw_([at(_,N0) | T], N1, TempUsed, Used):-
+    dif(N0,N1),
+    usedHw_(T, N1, TempUsed, Used).
 
 % Computes the allocated storage for the current placement Placemetn
-allocatedStorage(P, Alloc) :- findall((N,S), (member(at(I,N), P), image(I,S,_)), Alloc).
+allocatedStorage(Placement, Alloc):-
+    allocatedStorage_(Placement, [], Alloc).
+allocatedStorage_([], L, L).
+allocatedStorage_([at(I,N) | T], CP, Alloc):-
+    image(I,S,_),
+    allocatedStorage_(T, [(N,S) | CP], Alloc).
+
+% % Computes the hardware used by the node Node in the placement P
+% % and unifies this value with TotUsed
+% usedHw(P, N, TotUsed) :- findall(S, (member(at(I,N), P), image(I,S,_)), Used), sum_list(Used, TotUsed).
+
+% % Computes the allocated storage for the current placement Placemetn
+% allocatedStorage(P, Alloc) :- findall((N,S), (member(at(I,N), P), image(I,S,_)), Alloc).
 
 loadInfrastructure() :-
     open('infra.pl', read, Str),

@@ -133,13 +133,15 @@ def simulate(n, m, epochs):
                 # TODO: handle timeout and false
 
                 try:
-                    result = prolog_thread.query("once(crStep(P, KOImages, NewPlacement, Cost, Time))",query_timeout_seconds = 30)
+                    result = prolog_thread.query("once(crStep(P, KOImages, NewPlacement, Cost, Time))",query_timeout_seconds = 10)
                     times.append(result[0]['Time'])
                     #print(result[0]['KOImages'])
                     # print(result[0]['Cost'])
                     # print(result[0]['NewPlacement'])
                     # print("time:"+ str(result[0]['Time']))    
                 except:
+                    G = generate_infrastructure_barabasi_albert(n,m)
+                    write_to_file(G, "infra.pl")
                     print("timeout exceeded")
                     continue
 
@@ -151,5 +153,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(500,3,10)
+simulate(500,3,30)
 
