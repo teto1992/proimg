@@ -1,6 +1,6 @@
-image(alpine,3,300).
-image(ngnix,65,300).
-image(busybox,2,300).
-image(ubuntu,28,300).
-image(python,46,300).
+image(alpine,3,10).
+image(ngnix,65,120).
+image(busybox,2,15).
+image(ubuntu,28,120).
+image(python,46,100).
 

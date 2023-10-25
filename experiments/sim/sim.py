@@ -14,7 +14,7 @@ def write_to_file(G, filename):
 
     f = open(filename,"w")
 
-    f.write('maxReplicas('+str(5)+').\n')
+    f.write('maxReplicas('+str(25)+').\n')
 
     for i in range(0,G.number_of_nodes()):
         if G.nodes[i]['on']:
@@ -131,10 +131,10 @@ def simulate(n, m, epochs):
                 # TODO: handle timeout and false
 
                 try:
-                    result = prolog_thread.query("once(declace(P, KOImages, NewPlacement, Cost, Time))",query_timeout_seconds = 300)
+                    result = prolog_thread.query("declace(P, Cost, Time)",query_timeout_seconds = 60)
                     times.append(result[0]['Time'])
                     #print(result[0]['KOImages'])
-                    # print(result[0]['Cost'])
+                    print(result[0]['Cost'])
                     # print(result[0]['NewPlacement'])
                     print("time:"+ str(result[0]['Time']))   
                     changeInfra(G)
@@ -152,5 +152,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(500,3,100)
+simulate(250,3,20)
 

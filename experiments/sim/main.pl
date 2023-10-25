@@ -2,84 +2,20 @@
 :- set_prolog_flag(stack_limit, 32 000 000 000).
 :- set_prolog_flag(last_call_optimisation, true).
 :- consult('images.pl').
+%:- consult('infra.pl').
 :- dynamic(placedImages/3).
 :- dynamic(image/3).
 :- dynamic(node/3).
 :- dynamic(link/4).
 :- dynamic(maxReplicas/1).
 :- table transferTime/4.
-
-/*Places images one by one without exceeding MaxReplicas for each image*/
-declance(Placement, Cost) :-
-    imagesToPlace(Images),
-    networkNodes(Nodes),
-    maxReplicas(Max), 
-    id(Images, Nodes, [], Placement, 1, Max),
-    cost(Placement, Cost),
-    allocatedStorage(Placement,Alloc),
-    updatePlacement(Placement, Alloc, Cost).
-
-/* Identify KOImages and builds a new Placement with associated cost, by keeping the partial POk as is*/
-declace(P, KOImages, NewPlacement, Cost, Time) :- 
-    placedImages(P, Alloc, _), dif(P,[]),  
-    imagesToPlace(Images), networkNodes(Nodes),
+    
+declace(Placement, Cost, Time) :-
+    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(Max),
     statistics(cputime, Start),
-        reasoningStep(Images, Nodes, P, [], POk, Alloc, KOImages),
-        length(Images,L1), length(KOImages,L2), 
-        %write('Replacing '), write(L2), write(' out of '), write(L1), nl,
-        placement(KOImages, Nodes, POk, NewPlacement, Cost),
-    statistics(cputime, End), Time is End - Start, 
-    write('Replaced '), write(L2), write(' out of '), write(L1), nl.
-declace([], [], Placement, Cost, Time) :- 
-    imagesToPlace(Images), networkNodes(Nodes),
-    statistics(cputime, Start),
-        placement(Images, Nodes, [], Placement, Cost),
-    statistics(cputime, End), Time is End - Start, writeln('complete placement done').
-
-/* Identify images to be replaced (i.e. new images or images with problems on storage or transfer times) */
-reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
-    findall(at(I,N), member(at(I,N), P), INs),
-    append(INs, POk, TmpPOk),
-    image(I, Size, _),
-    checkTransferTimes(I, Nodes, TmpPOk),
-    checkStorage(I, Size, TmpPOk, Alloc), 
-    reasoningStep(Is, Nodes, P, TmpPOk, NewPOk, Alloc, KO).
-reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
-    reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
-reasoningStep([], _, _, POk, POk, _, []).
-
-updatePlacement(Placement, Alloc, Cost) :-
-    ( placedImages(_,_,_) -> retract(placedImages(_,_,_)) ; true),
-    assert(placedImages(Placement, Alloc, Cost)).
-
-/* Iterative deepening */
-placement([], _, POk, POk, Cost) :-
-    cost(POk, Cost), allocatedStorage(POk,Alloc),
-    updatePlacement(POk, Alloc, Cost).  
-placement(ImagesToPlace, Nodes, PartialPlacement, Placement, Cost) :-
-    maxReplicas(Max), 
-    id(ImagesToPlace, Nodes, PartialPlacement, Placement, 1, Max),
-    cost(Placement, Cost),
-    allocatedStorage(Placement,Alloc),
-    updatePlacement(Placement, Alloc, Cost).
-
-id(Images, Nodes, PartialPlacement, Placement, M, Max) :-
-    M =< Max, imagePlacement(Images, Nodes, PartialPlacement, Placement, M).
-id(Images, Nodes, PartialPlacement, Placement, M, Max) :-
-    M =< Max, NewM is M+1,
-    id(Images, Nodes, PartialPlacement, Placement, NewM, Max).
-
-% % Computes placement cost
-% cost(L, Cost):-
-%     cost_(L, 0, Cost).
-% cost_([], C, C).
-% cost_([at(I,N) | T], C0, C):-
-%     image(I, S ,_),
-%     node(N, _ ,NC),
-%     C1 is NC * S + C0,
-%     cost_(T, C1, C). 
-cost(Placement, Cost) :-
-    findall(C, (member(at(_,N), Placement), node(N,_,C)), Costs), sum_list(Costs, Cost).
+    once(crPlacement(Images, Nodes, Max, Placement, Cost)),
+    statistics(cputime, End),
+    Time is End - Start.
 
 % selects the images starting from the the ones with the highest
 % associated capacity
@@ -95,17 +31,56 @@ networkNodes(Nodes) :-
     sort(0, @<, Tmp, SortedTmpDes),
     maplist(get_id, SortedTmpDes, Nodes).
 
-imagePlacement(Images, Nodes, Placement, Max) :-
-    imagePlacement(Images, Nodes, [], Placement, Max).
-imagePlacement([],_,P,P,_).
+/* Determines either a NewPlacement  of Images onto Nodes */
+crPlacement(Images, Nodes, Max, NewPlacement, Cost) :- 
+    placedImages(Placement, Alloc, _), %dif(Placement,[]),  
+    reasoningStep(Images, Nodes, Placement, [], OkPlacement, Alloc, KOImages),
+    placement(KOImages, Nodes, Max, OkPlacement, NewPlacement, Cost).
+crPlacement(Images, Nodes, Max, InitialPlacement, Cost) :- 
+    placement(Images, Nodes, Max, [], InitialPlacement, Cost).
+
+/* Identify images to be replaced (i.e. new images or images with problems on storage or transfer times) */
+reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
+    findall(at(I,N), member(at(I,N), P), INs),
+    append(INs, POk, TmpPOk),
+    image(I, Size, _),
+    checkTransferTimes(I, Nodes, TmpPOk),
+    checkStorage(I, Size, TmpPOk, Alloc), 
+    reasoningStep(Is, Nodes, P, TmpPOk, NewPOk, Alloc, KO).
+reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
+    reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
+reasoningStep([], _, _, POk, POk, _, []).
+
+placement(Placement, Cost) :-
+    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(Max),
+    placement(Images, Nodes, Max, [], Placement, Cost).
+
+/* Iterative deepening */
+placement([], _, _, POk, POk, Cost) :-
+    cost(POk, Cost), allocatedStorage(POk,Alloc),
+    storePlacement(POk, Alloc, Cost).  
+placement([I|Mages], Nodes, Max, PartialPlacement, Placement, Cost) :-
+    id([I|Mages], Nodes, PartialPlacement, Placement, 1, Max), 
+    cost(Placement, Cost),
+    allocatedStorage(Placement,Alloc),
+    storePlacement(Placement, Alloc, Cost).
+
+/* calls image placement by iteratively increasing the number of maximum allowed replicas from M to Max */
+id(Images, Nodes, PartialPlacement, Placement, M, Max) :-
+    M =< Max, 
+    imagePlacement(Images, Nodes, PartialPlacement, Placement, M).
+id(Images, Nodes, PartialPlacement, Placement, M, Max) :-
+    M =< Max, NewM is M+1,
+    id(Images, Nodes, PartialPlacement, Placement, NewM, Max).
+    
 imagePlacement([I|Is], Nodes, OldPlacement, NewPlacement, Max) :-
     replicaPlacement(I,Nodes,OldPlacement,TmpPlacement,Max), 
     imagePlacement(Is,Nodes,TmpPlacement,NewPlacement,Max).
+imagePlacement([],_,P,P,_).
 
-replicaPlacement(I, Nodes, P, P, _) :-
-    transferTimesOk(I, Nodes, P). % green cut
+replicaPlacement(I, Nodes, P, P, _) :- transferTimesOk(I, Nodes, P), !.
 replicaPlacement(I, Nodes, Placement, NewPlacement, M) :-
-    \+ transferTimesOk(I, Nodes, Placement),
+    % \+ transferTimesOk(I, Nodes, Placement),
     M > 0, NewM is M - 1,
     image(I, Size, _),
     member(N, Nodes),
@@ -117,30 +92,30 @@ replicaPlacement(I, Nodes, Placement, NewPlacement, M) :-
 transferTimesOk(I, Nodes, P) :-
     dif(P,[]), checkTransferTimes(I, Nodes,P).    
 
-checkTransferTimes(_, [], _).
 checkTransferTimes(I, [N|Ns], P) :-
     member(at(I,M),P),
     image(I,_,Max), 
     transferTime(I,M,N,T),
     T < Max, !, % one source is enough
     checkTransferTimes(I, Ns, P).
+checkTransferTimes(_, [], _).
 
-transferTime(_, N, N, 0).
 transferTime(Image, Src, Dest, T) :-
-    image(Image, Size, _),
     dif(Src, Dest), 
+    image(Image, Size, _),
     node(Src, _, _),
     node(Dest, _, _),
     link(Src, Dest, Latency, Bandwidth),
-    T is Size * 8 / Bandwidth + Latency.  % Latency in ms, Bandwidth Megabit per second, Size in MB
+    T is Size * 8 / Bandwidth + Latency / 1000.
+transferTime(_, N, N, 0).
 
 checkStorage(I, Size, Placement, Alloc) :-
     findall(N, member(at(I,N), Placement), Nodes), 
     checkStorage(I, Size, Nodes, Placement, Alloc).
 
-checkStorage(_, _, [], _, _). 
 checkStorage(I, Size, [N|Ns], Placement, Alloc) :-
     storageOk(Placement, N, Size), checkStorage(I, Size, Ns, Placement, Alloc).
+checkStorage(_, _, [], _, _). 
 
 storageOk(Placement, N, Size) :- 
     (placedImages(_, Alloc, _) ; (Alloc = [])),
@@ -150,33 +125,17 @@ storageOk(Placement, N, Size) :-
     usedHw(Placement, N, UsedHw),
     Storage + OldAlloc - UsedHw >= Size.
 
-% % Computes the hardware used by the node Node in the placement P
-% % and unifies this value with TotUsed
-% usedHw(P, Node, TotUsed):-
-%     usedHw_(P, Node, 0, TotUsed).
-% usedHw_([], _, U, U).
-% usedHw_([at(I,N) | T], N, TempUsed, Used):-
-%     image(I,S,_),
-%     TempUsed1 is TempUsed + S,
-%     usedHw_(T, N, TempUsed1, Used).
-% usedHw_([at(_,N0) | T], N1, TempUsed, Used):-
-%     dif(N0,N1),
-%     usedHw_(T, N1, TempUsed, Used).
+cost(Placement, Cost) :- findall(C, (member(at(_,N), Placement), node(N,_,C)), Costs), sum_list(Costs, Cost).
 
-% % Computes the allocated storage for the current placement Placemetn
-% allocatedStorage(Placement, Alloc):-
-%     allocatedStorage_(Placement, [], Alloc).
-% allocatedStorage_([], L, L).
-% allocatedStorage_([at(I,N) | T], CP, Alloc):-
-%     image(I,S,_),
-%     allocatedStorage_(T, [(N,S) | CP], Alloc).
-
-% Computes the hardware used by the node Node in the placement P
-% and unifies this value with TotUsed
 usedHw(P, N, TotUsed) :- findall(S, (member(at(I,N), P), image(I,S,_)), Used), sum_list(Used, TotUsed).
 
-% Computes the allocated storage for the current placement Placemetn
 allocatedStorage(P, Alloc) :- findall((N,S), (member(at(I,N), P), image(I,S,_)), Alloc).
+
+storePlacement(Placement, Alloc, Cost) :-
+    ( placedImages(_,_,_) -> retract(placedImages(_,_,_)) ; true),
+    assert(placedImages(Placement, Alloc, Cost)).
+
+%%% Utils %%%
 
 loadInfrastructure() :-
     open('infra.pl', read, Str),
@@ -187,31 +146,4 @@ readAndAssert(Str) :-
     read(Str, X), (X == end_of_file -> close(Str) ; assert(X), readAndAssert(Str)).
 
 
-% iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, M, Max) :-
-%     M =< Max, bestPlacement(Images, Nodes, PartialPlacement, Placement, M).
-% iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, M, Max) :-
-%     M =< Max,
-%     NewM is M + 1,
-%     iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, NewM, Max).
 
-% bestPlacement(Images, Nodes, Placement, M) :-
-%     bestPlacement(Images, Nodes, [], Placement, M).
-% bestPlacement(Images, Nodes, PartialPlacement, Placement, Max) :- 
-%     imagePlacement(Images, Nodes, PartialPlacement, Placement, Max), cost(Placement, Cost),
-%     \+ ( imagePlacement(Images, Nodes, PartialPlacement, P2, Max), dif(Placement, P2), cost(P2,C2), C2 < Cost ).
-
-% iterativeDeepening(quick, Images, Nodes, Placement, M, Max) :-
-%     M =< Max,
-%     imagePlacement(Images, Nodes, Placement, M).
-% iterativeDeepening(quick, Images, Nodes, Placement, M, Max) :-
-%     M =< Max,
-%     NewM is M+1,
-%     iterativeDeepening(quick, Images, Nodes, Placement, NewM, Max).
-
-% iterativeDeepening(best, Images, Nodes, Placement, M, Max) :-
-%     M =< Max,
-%     bestPlacement(Images, Nodes, Placement, M).
-% iterativeDeepening(best, Images, Nodes, Placement, M, Max) :-
-%     M =< Max,
-%     NewM is M + 1,
-%     iterativeDeepening(best, Images, Nodes, Placement, NewM, Max).
