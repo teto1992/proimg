@@ -39,44 +39,21 @@ updatePlacement(Placement, Alloc, Cost) :-
     assert(placedImages(Placement, Alloc, Cost)).
 
 /* Iterative deepening */
-iterativeDeepening([], _, POk, POk, Cost) :-
-    cost(POk, Cost), allocatedStorage(POk,Alloc),
+placement([], _, POk, POk, Cost) :-
+    allocatedStorage(POk,Alloc), cost(POk, Cost), 
     updatePlacement(POk, Alloc, Cost).  
-iterativeDeepening(ImagesToPlace, Nodes, PartialPlacement, Placement, Cost) :-
+placement(ImagesToPlace, Nodes, PartialPlacement, Placement, Cost) :-
     maxReplicas(Max), 
-    iterativeDeepening(quick, ImagesToPlace, Nodes, PartialPlacement, Placement, 1, Max),
+    iterativeDeepening(ImagesToPlace, Nodes, PartialPlacement, Placement, 1, Max),
     cost(Placement, Cost),
     allocatedStorage(Placement,Alloc),
     updatePlacement(Placement, Alloc, Cost).
 
-/*Places images one by one without exceeding MaxReplicas for each image*/
-iterativeDeepening(Mode, Placement, Cost) :-
-    imagesToPlace(Images),
-    networkNodes(Nodes),
-    maxReplicas(Max), 
-    iterativeDeepening(Mode, Images, Nodes, Placement, 1, Max),
-    cost(Placement, Cost),
-    allocatedStorage(Placement,Alloc),
-    updatePlacement(Placement, Alloc, Cost).
-
-iterativeDeepening(quick, Images, Nodes, PartialPlacement, Placement, M, Max) :-
+iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, Max) :-
     M =< Max, imagePlacement(Images, Nodes, PartialPlacement, Placement, M).
-iterativeDeepening(quick, Images, Nodes, PartialPlacement, Placement, M, Max) :-
+iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, Max) :-
     M =< Max, NewM is M+1,
-    iterativeDeepening(quick, Images, Nodes, PartialPlacement, Placement, NewM, Max).
-
-iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, M, Max) :-
-    M =< Max, bestPlacement(Images, Nodes, PartialPlacement, Placement, M).
-iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, M, Max) :-
-    M =< Max,
-    NewM is M + 1,
-    iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, NewM, Max).
-
-bestPlacement(Images, Nodes, Placement, M) :-
-    bestPlacement(Images, Nodes, [], Placement, M).
-bestPlacement(Images, Nodes, PartialPlacement, Placement, Max) :- 
-    imagePlacement(Images, Nodes, PartialPlacement, Placement, Max), cost(Placement, Cost),
-    \+ ( imagePlacement(Images, Nodes, PartialPlacement, P2, Max), dif(Placement, P2), cost(P2,C2), C2 < Cost ).
+    iterativeDeepening(Images, Nodes, PartialPlacement, Placement, NewM, Max).
 
 % % Computes placement cost
 cost(L, Cost):-
@@ -104,21 +81,13 @@ networkNodes(Nodes) :-
     sort(0, @<, Tmp, SortedTmpDes),
     maplist(get_id, SortedTmpDes, Nodes).
 
-iterativeDeepening(quick, Images, Nodes, Placement, M, Max) :-
+iterativeDeepening(Images, Nodes, Placement, M, Max) :-
     M =< Max,
     imagePlacement(Images, Nodes, Placement, M).
-iterativeDeepening(quick, Images, Nodes, Placement, M, Max) :-
+iterativeDeepening(Images, Nodes, Placement, M, Max) :-
     M =< Max,
     NewM is M+1,
-    iterativeDeepening(quick, Images, Nodes, Placement, NewM, Max).
-
-iterativeDeepening(best, Images, Nodes, Placement, M, Max) :-
-    M =< Max,
-    bestPlacement(Images, Nodes, Placement, M).
-iterativeDeepening(best, Images, Nodes, Placement, M, Max) :-
-    M =< Max,
-    NewM is M + 1,
-    iterativeDeepening(best, Images, Nodes, Placement, NewM, Max).
+    iterativeDeepening(Images, Nodes, Placement, NewM, Max).
 
 imagePlacement(Images, Nodes, Placement, Max) :-
     imagePlacement(Images, Nodes, [], Placement, Max).
@@ -210,3 +179,34 @@ loadInfrastructure() :-
 
 readAndAssert(Str) :-
     read(Str, X), (X == end_of_file -> close(Str) ; assert(X), readAndAssert(Str)).
+
+/*Places images one by one without exceeding MaxReplicas for each image*/
+iterativeDeepening(Mode, Placement, Cost) :-
+    imagesToPlace(Images),
+    networkNodes(Nodes),
+    maxReplicas(Max), 
+    iterativeDeepening(Mode, Images, Nodes, Placement, 1, Max),
+    cost(Placement, Cost),
+    allocatedStorage(Placement,Alloc),
+    updatePlacement(Placement, Alloc, Cost).
+
+iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, M, Max) :-
+    M =< Max, bestPlacement(Images, Nodes, PartialPlacement, Placement, M).
+iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, M, Max) :-
+    M =< Max,
+    NewM is M + 1,
+    iterativeDeepening(best, Images, Nodes, PartialPlacement, Placement, NewM, Max).
+
+bestPlacement(Images, Nodes, Placement, M) :-
+    bestPlacement(Images, Nodes, [], Placement, M).
+bestPlacement(Images, Nodes, PartialPlacement, Placement, Max) :- 
+    imagePlacement(Images, Nodes, PartialPlacement, Placement, Max), cost(Placement, Cost),
+    \+ ( imagePlacement(Images, Nodes, PartialPlacement, P2, Max), dif(Placement, P2), cost(P2,C2), C2 < Cost ).
+
+iterativeDeepening(best, Images, Nodes, Placement, M, Max) :-
+    M =< Max,
+    bestPlacement(Images, Nodes, Placement, M).
+iterativeDeepening(best, Images, Nodes, Placement, M, Max) :-
+    M =< Max,
+    NewM is M + 1,
+    iterativeDeepening(best, Images, Nodes, Placement, NewM, Max).
