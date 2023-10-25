@@ -14,7 +14,7 @@ def write_to_file(G, filename):
 
     f = open(filename,"w")
 
-    f.write('maxReplicas('+str(25)+').\n')
+    f.write('maxReplicas('+str(6)+').\n')
 
     for i in range(0,G.number_of_nodes()):
         if G.nodes[i]['on']:
@@ -152,5 +152,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(250,3,20)
+simulate(250,3,100)
 
