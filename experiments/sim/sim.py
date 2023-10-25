@@ -59,7 +59,7 @@ def routing(G):
 
 def generate_infrastructure_barabasi_albert(number_of_nodes, m):
 
-    G = nx.generators.random_graphs.barabasi_albert_graph(number_of_nodes,m,seed=481183)
+    G = nx.generators.random_internet_as_graph(number_of_nodes) # generators.random_graphs.barabasi_albert_graph(number_of_nodes,m,seed=481183)
 
     for i in range(0,number_of_nodes):
         edge = random.random() > 0.2 # 80% of the nodes in the edge, 20% in the cloud
@@ -138,20 +138,21 @@ def simulate(n, m, epochs):
                     #print(result[0]['KOImages'])
                     # print(result[0]['Cost'])
                     # print(result[0]['NewPlacement'])
-                    # print("time:"+ str(result[0]['Time']))    
+                    # print("time:"+ str(result[0]['Time']))   
+                    changeInfra(G)
+                    write_to_file(G, "infra.pl") 
                 except:
                     G = generate_infrastructure_barabasi_albert(n,m)
                     write_to_file(G, "infra.pl")
                     print("timeout exceeded")
                     continue
 
-                changeInfra(G)
-                write_to_file(G, "infra.pl")
+                
 
     mqi.stop()
 
     print(sum(times)/len(times))
                     
 
-simulate(500,3,30)
+simulate(100,3,30)
 
