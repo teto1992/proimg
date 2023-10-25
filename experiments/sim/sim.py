@@ -14,9 +14,7 @@ def write_to_file(G, filename):
 
     f = open(filename,"w")
 
-    f.write('maxReplicas('+str(50)+').\n')
-
-    #G.nodes[0]['on'] = False
+    f.write('maxReplicas('+str(5)+').\n')
 
     for i in range(0,G.number_of_nodes()):
         if G.nodes[i]['on']:
@@ -59,7 +57,7 @@ def routing(G):
 
 def generate_infrastructure_barabasi_albert(number_of_nodes, m):
 
-    G = nx.generators.random_internet_as_graph(number_of_nodes) # generators.random_graphs.barabasi_albert_graph(number_of_nodes,m,seed=481183)
+    G = nx.generators.random_graphs.barabasi_albert_graph(number_of_nodes,m,seed=481183) # random_internet_as_graph(number_of_nodes) # 
 
     for i in range(0,number_of_nodes):
         edge = random.random() > 0.2 # 80% of the nodes in the edge, 20% in the cloud
@@ -133,12 +131,12 @@ def simulate(n, m, epochs):
                 # TODO: handle timeout and false
 
                 try:
-                    result = prolog_thread.query("once(crStep(P, KOImages, NewPlacement, Cost, Time))",query_timeout_seconds = 10)
+                    result = prolog_thread.query("once(declace(P, KOImages, NewPlacement, Cost, Time))",query_timeout_seconds = 300)
                     times.append(result[0]['Time'])
                     #print(result[0]['KOImages'])
                     # print(result[0]['Cost'])
                     # print(result[0]['NewPlacement'])
-                    # print("time:"+ str(result[0]['Time']))   
+                    print("time:"+ str(result[0]['Time']))   
                     changeInfra(G)
                     write_to_file(G, "infra.pl") 
                 except:
@@ -154,5 +152,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(100,3,30)
+simulate(500,3,100)
 
