@@ -152,5 +152,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(250,3,100)
+simulate(50,3,50)
 

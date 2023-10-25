@@ -14,11 +14,10 @@ imagesToPlace(Images) :-
     findall(I, member((S,I), SortedImagesDescending), Images).
 
 % Sorts candidates by cost in ascending order
-get_id(cand(_,B),B).
 networkNodes(Nodes) :- 
     findall(cand(C,N), node(N,_,C), Tmp),
     sort(0, @<, Tmp, SortedTmpDes),
-    maplist(get_id, SortedTmpDes, Nodes).
+    findall(N, member(cand(C,N), SortedTmpDes), Nodes).
 
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, Max, NewPlacement, Cost) :- 
