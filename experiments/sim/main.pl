@@ -24,7 +24,6 @@ networkNodes(Nodes) :-
 crPlacement(Images, Nodes, Max, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), dif(Placement,[]),  
     reasoningStep(Images, Nodes, Placement, [], OkPlacement, Alloc, KOImages),
-    write('KO images: '), write(KOImages), nl,
     placement(KOImages, Nodes, Max, OkPlacement, NewPlacement, Cost).
 crPlacement(Images, Nodes, Max, InitialPlacement, Cost) :- 
     placement(Images, Nodes, Max, [], InitialPlacement, Cost).
