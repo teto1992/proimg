@@ -45,7 +45,7 @@ placement(Placement, Cost) :-
 
 /* Iterative deepening */
 placement([I|Mages], Nodes, Max, PartialPlacement, Placement, Cost) :-
-    id([I|Mages], Nodes, PartialPlacement, Placement, 1, Max), 
+    iterativeDeepening([I|Mages], Nodes, PartialPlacement, Placement, 1, Max), 
     cost(Placement, Cost),
     allocatedStorage(Placement,Alloc),
     storePlacement(Placement, Alloc, Cost).
@@ -54,12 +54,12 @@ placement([], _, _, POk, POk, Cost) :-
     storePlacement(POk, Alloc, Cost).  
 
 /* Calls imagePlacement/5 while increasing the number of maximum allowed replicas from M to Max */
-id(Images, Nodes, PartialPlacement, Placement, M, Max) :-
+iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, Max) :-
     M =< Max, 
     imagePlacement(Images, Nodes, PartialPlacement, Placement, M).
-id(Images, Nodes, PartialPlacement, Placement, M, Max) :-
+iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, Max) :-
     M =< Max, NewM is M+1,
-    id(Images, Nodes, PartialPlacement, Placement, NewM, Max).
+    iterativeDeepening(Images, Nodes, PartialPlacement, Placement, NewM, Max).
     
 /* Places Images one by one */
 imagePlacement([I|Is], Nodes, OldPlacement, NewPlacement, Max) :-
@@ -69,13 +69,11 @@ imagePlacement([],_,P,P,_).
 
 /* Places at most M replicas of I onto Nodes, until transferTimesOk/3 holds */
 replicaPlacement(I, Nodes, P, P, _) :- 
-    transferTimesOk(I, Nodes, P).
+    transferTimesOk(I, Nodes, P), !.
 replicaPlacement(I, Nodes, Placement, NewPlacement, M) :-
-    \+ transferTimesOk(I, Nodes, Placement),
+    % \+ transferTimesOk(I, Nodes, Placement), 
     M > 0, NewM is M - 1,
-    image(I, Size, _),
-    member(N, Nodes),
-    node(N, _, _),
+    image(I, Size, _), member(N, Nodes),
     \+ member(at(I,N), Placement),
     storageOk(Placement, N, Size),
     replicaPlacement(I, Nodes, [at(I, N)|Placement], NewPlacement, NewM).
@@ -92,10 +90,8 @@ checkTransferTimes(I, [N|Ns], P) :-
 checkTransferTimes(_, [], _).
 
 transferTime(Image, Src, Dest, T) :-
-    dif(Src, Dest), 
+    dif(Src, Dest), node(Src, _, _), node(Dest, _, _),
     image(Image, Size, _),
-    node(Src, _, _),
-    node(Dest, _, _),
     link(Src, Dest, Latency, Bandwidth),
     T is Size * 8 / Bandwidth + Latency / 1000.
 transferTime(_, N, N, 0).

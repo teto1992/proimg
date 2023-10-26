@@ -73,8 +73,8 @@ def generate_infrastructure_barabasi_albert(number_of_nodes, m):
         G.nodes[i]['cost'] = str(random.randint(1,10))
 
     for (i,j) in G.edges():
-        G.edges[i,j]['latency'] = int(random.randint(1,50))#,25,50,100,150]))
-        G.edges[i,j]['bandwidth'] = int(random.randint(1,200))# , 50, 100, 200, 500, 1000]))
+        G.edges[i,j]['latency'] = int(random.randint(1,20))#,25,50,100,150]))
+        G.edges[i,j]['bandwidth'] = int(random.randint(5,500))# , 50, 100, 200, 500, 1000]))
         G.edges[i,j]['physical'] = True
 
     G = routing(G)
@@ -95,12 +95,12 @@ def changeInfra(G):
         if G.edges[i,j]['physical']:
             # link degradation
             if random.random() > 0.5:
-                change = 0.25
+                change = random.uniform(0,0.25)
                 G.edges[i,j]['latency'] += int(change * G.edges[i,j]['latency'])
                 G.edges[i,j]['bandwidth'] -= int(change * G.edges[i,j]['bandwidth'])
             # link improvement
             else:
-                change = 0.25
+                change = random.uniform(0,0.25)
                 G.edges[i,j]['latency'] -= int(change * G.edges[i,j]['latency'])
                 G.edges[i,j]['bandwidth'] += int(change * G.edges[i,j]['bandwidth'])
         else: # virtual link
@@ -152,5 +152,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(50,3,50)
+simulate(500,3,30)
 
