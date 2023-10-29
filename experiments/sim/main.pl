@@ -1,9 +1,9 @@
 :- consult('config.pl').
 
 declace(Placement, Cost, Time) :-
-    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(Max),
+    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
     statistics(cputime, Start),
-    once(crPlacement(Images, Nodes, Max, Placement, Cost)),
+    once(crPlacement(Images, Nodes, MaxR, Placement, Cost)),
     statistics(cputime, End),
     Time is End - Start.
 
@@ -20,32 +20,31 @@ networkNodes(Nodes) :-
     findall(N, member(cand(C,N), SortedTmpDes), Nodes).
 
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
-crPlacement(Images, Nodes, Max, NewPlacement, Cost) :- 
+crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), dif(Placement,[]),  
-    reasoningStep(Images, Nodes, Placement, [], OkPlacement, Alloc, KOImages),
-    placement(KOImages, Nodes, Max, OkPlacement, NewPlacement, Cost).
-crPlacement(Images, Nodes, Max, InitialPlacement, Cost) :- 
-    placement(Images, Nodes, Max, [], InitialPlacement, Cost).
+    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
+    placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
+crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 
+    placement(Images, Nodes, MaxR, [], InitialPlacement, Cost).
 
 /* Identifies images to be replaced (i.e. new images or images with problems on storage or transfer times) */
-reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, KO) :-
-    findall(at(I,N), member(at(I,N), P), INs),
-    append(INs, POk, TmpPOk),
-    image(I, Size, _),
-    checkTransferTimes(I, Nodes, TmpPOk),
-    checkStorage(I, Size, TmpPOk, Alloc), 
-    reasoningStep(Is, Nodes, P, TmpPOk, NewPOk, Alloc, KO).
-reasoningStep([I|Is], Nodes, P, POk, NewPOk, Alloc, [I|KO]) :-
-    reasoningStep(Is, Nodes, P, POk, NewPOk, Alloc, KO).
-reasoningStep([], _, _, POk, POk, _, []).
+crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, KO) :-
+    findall(at(I,N), member(at(I,N), P), INs), append(INs, POk, TmpPOk),
+    length(INs, IReplicas), IReplicas =< MaxR,
+    transferTimesOk(I, Nodes, TmpPOk),
+    image(I, Size, _), storageOk(I, Size, TmpPOk, Alloc), !,
+    crStep(Is, Nodes, MaxR, P, TmpPOk, NewPOk, Alloc, KO).
+crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, [I|KO]) :-
+    crStep(Is, Nodes, MaxR, P, POk, NewPOk, Alloc, KO).
+crStep([], _, _, _, POk, POk, _, []).
 
 placement(Placement, Cost) :-
-    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(Max),
-    placement(Images, Nodes, Max, [], Placement, Cost).
+    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
+    placement(Images, Nodes, MaxR, [], Placement, Cost).
 
 /* Iterative deepening */
-placement([I|Mages], Nodes, Max, PartialPlacement, Placement, Cost) :-
-    iterativeDeepening([I|Mages], Nodes, PartialPlacement, Placement, 1, Max), 
+placement([I|Mages], Nodes, MaxR, PartialPlacement, Placement, Cost) :-
+    iterativeDeepening([I|Mages], Nodes, PartialPlacement, Placement, 1, MaxR), 
     cost(Placement, Cost),
     allocatedStorage(Placement,Alloc),
     storePlacement(Placement, Alloc, Cost).
@@ -54,40 +53,39 @@ placement([], _, _, POk, POk, Cost) :-
     storePlacement(POk, Alloc, Cost).  
 
 /* Calls imagePlacement/5 while increasing the number of maximum allowed replicas from M to Max */
-iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, Max) :-
-    M =< Max, 
-    imagePlacement(Images, Nodes, PartialPlacement, Placement, M).
-iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, Max) :-
-    M =< Max, NewM is M+1,
-    iterativeDeepening(Images, Nodes, PartialPlacement, Placement, NewM, Max).
+iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
+    M =< MaxR, 
+    imagePlacement(Images, Nodes, PartialPlacement, Placement, M), !.
+iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
+    M =< MaxR, NewM is M+1,
+    iterativeDeepening(Images, Nodes, PartialPlacement, Placement, NewM, MaxR).
     
 /* Places Images one by one */
-imagePlacement([I|Is], Nodes, OldPlacement, NewPlacement, Max) :-
-    replicaPlacement(I,Nodes,OldPlacement,TmpPlacement,Max), 
-    imagePlacement(Is,Nodes,TmpPlacement,NewPlacement,Max).
-imagePlacement([],_,P,P,_).
+imagePlacement([I|Is], Nodes, PPlacement, Placement, R) :-
+    replicaPlacement(I, Nodes, PPlacement, TmpPPlacement, R), 
+    imagePlacement(Is, Nodes, TmpPPlacement, Placement, R).
+imagePlacement([],_,Placement,Placement,_).
 
 /* Places at most M replicas of I onto Nodes, until transferTimesOk/3 holds */
-replicaPlacement(I, Nodes, P, P, _) :- 
-    transferTimesOk(I, Nodes, P), !.
-replicaPlacement(I, Nodes, Placement, NewPlacement, M) :-
-    % \+ transferTimesOk(I, Nodes, Placement), 
-    M > 0, NewM is M - 1,
+replicaPlacement(I, Nodes, Placement, Placement, _) :- 
+    transferTimesOk(I, Nodes, Placement), !.
+replicaPlacement(I, Nodes, PPlacement, NewPPlacement, R) :-
+    % \+ transferTimesOk(I, Nodes, PPlacement), 
+    R > 0, NewR is R - 1,
     image(I, Size, _), member(N, Nodes),
-    \+ member(at(I,N), Placement),
-    storageOk(Placement, N, Size),
-    replicaPlacement(I, Nodes, [at(I, N)|Placement], NewPlacement, NewM).
+    \+ member(at(I,N), PPlacement),
+    storageOk(PPlacement, N, Size),
+    replicaPlacement(I, Nodes, [at(I, N)|PPlacement], NewPPlacement, NewR).
 
-transferTimesOk(I, Nodes, P) :-
-    dif(P,[]), checkTransferTimes(I, Nodes,P).    
+%transferTimesOk(I, Nodes, P) :- dif(P,[]), checkTransferTimes(I, Nodes,P).    
 
-checkTransferTimes(I, [N|Ns], P) :-
-    member(at(I,M),P),
-    image(I,_,Max), 
+transferTimesOk(I, [N|Ns], P) :-
+    dif(P,[]), member(at(I,M),P),
+    image(I,_,MaxR), 
     transferTime(I,M,N,T),
-    T < Max, !, % one source is enough
-    checkTransferTimes(I, Ns, P).
-checkTransferTimes(_, [], _).
+    T < MaxR, !, % one source is enough
+    transferTimesOk(I, Ns, P).
+transferTimesOk(_, [], _).
 
 transferTime(Image, Src, Dest, T) :-
     dif(Src, Dest), node(Src, _, _), node(Dest, _, _),
@@ -96,7 +94,7 @@ transferTime(Image, Src, Dest, T) :-
     T is Size * 8 / Bandwidth + Latency / 1000.
 transferTime(_, N, N, 0).
 
-checkStorage(I, Size, Placement, Alloc) :-
+storageOk(I, Size, Placement, Alloc) :-
     findall(N, member(at(I,N), Placement), Nodes), 
     checkStorage(I, Size, Nodes, Placement, Alloc).
 
