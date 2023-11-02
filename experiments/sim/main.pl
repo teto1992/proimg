@@ -10,18 +10,18 @@ declace(Placement, Cost, Time) :-
 % Sorts images by size in descending order
 imagesToPlace(Images) :-
     findall((S,I), image(I,S,_), X),
-    sort(0, @>, X, SortedImagesDescending),
+    sort(0, @>=, X, SortedImagesDescending),
     findall(I, member((S,I), SortedImagesDescending), Images).
 
-% Sorts candidates by cost in ascending order
+% Sorts candidates by cost in ascending order and by hardware in descending orders
 networkNodes(Nodes) :- 
-    findall(cand(C,N), node(N,_,C), Tmp),
-    sort(0, @<, Tmp, SortedTmpDes),
-    findall(N, member(cand(C,N), SortedTmpDes), Nodes).
+    findall(cand(N,S,C), node(N,S,C), Tmp),
+    sort(2, @>=, Tmp, Tmp1), sort(3, @=<, Tmp1, SortedTmpDes),
+    findall(N, member(cand(N,S,C), SortedTmpDes), Nodes).
 
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
-    placedImages(Placement, Alloc, _), dif(Placement,[]),  
+    placedImages(Placement, Alloc, _),   
     crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
 crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 
@@ -42,6 +42,11 @@ placement(Placement, Cost) :-
     imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
     placement(Images, Nodes, MaxR, [], Placement, Cost).
 
+bestPlacement(P, Cost) :-
+    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
+    placement(Images, Nodes, MaxR, [], P, Cost),
+    \+ ( placement(Images, Nodes, MaxR, [], P2, C2), dif(P,P2), C2 < Cost ).
+
 /* Iterative deepening */
 placement([I|Mages], Nodes, MaxR, PartialPlacement, Placement, Cost) :-
     iterativeDeepening([I|Mages], Nodes, PartialPlacement, Placement, 1, MaxR), 
@@ -55,7 +60,7 @@ placement([], _, _, POk, POk, Cost) :-
 /* Calls imagePlacement/5 while increasing the number of maximum allowed replicas from M to Max */
 iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
     M =< MaxR, 
-    imagePlacement(Images, Nodes, PartialPlacement, Placement, M), !.
+    imagePlacement(Images, Nodes, PartialPlacement, Placement, M), !. 
 iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
     M =< MaxR, NewM is M+1,
     iterativeDeepening(Images, Nodes, PartialPlacement, Placement, NewM, MaxR).
@@ -76,8 +81,6 @@ replicaPlacement(I, Nodes, PPlacement, NewPPlacement, R) :-
     \+ member(at(I,N), PPlacement),
     storageOk(PPlacement, N, Size),
     replicaPlacement(I, Nodes, [at(I, N)|PPlacement], NewPPlacement, NewR).
-
-%transferTimesOk(I, Nodes, P) :- dif(P,[]), checkTransferTimes(I, Nodes,P).    
 
 transferTimesOk(I, [N|Ns], P) :-
     dif(P,[]), member(at(I,M),P),
@@ -109,7 +112,7 @@ storageOk(Placement, N, Size) :-
     usedHw(Placement, N, UsedHw),
     Storage + OldAlloc - UsedHw >= Size.
 
-cost(Placement, Cost) :- findall(C, (member(at(_,N), Placement), node(N,_,C)), Costs), sum_list(Costs, Cost).
+cost(Placement, Cost) :- findall(CS, (member(at(I,N),Placement), image(I,S,_), node(N,_,C), CS is C/10*S), CSs), sum_list(CSs, Cost).
 
 usedHw(P, N, TotUsed) :- findall(S, (member(at(I,N), P), image(I,S,_)), Used), sum_list(Used, TotUsed).
 
