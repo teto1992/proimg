@@ -21,7 +21,7 @@ networkNodes(Nodes) :-
 
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
-    placedImages(Placement, Alloc, _),   
+    placedImages(Placement, Alloc, _), %reverse(Images, RevImages), % start with the smallest images
     crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
 crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 
@@ -123,11 +123,10 @@ storePlacement(Placement, Alloc, Cost) :-
     assert(placedImages(Placement, Alloc, Cost)).
 
 %%% Utils %%%
-
-loadInfrastructure() :-
-    open('infra.pl', read, Str),
-    (retractall(node(_,_,_)), retractall(link(_,_,_,_)), retractall(maxReplicas(_)); true),
-    readAndAssert(Str).
+loadFile(Filename, ToRetract) :-
+    open(Filename, read, Str),
+	maplist(retractall,ToRetract),
+    readAndAssert(Str). 
 
 readAndAssert(Str) :-
     read(Str, X), (X == end_of_file -> close(Str) ; assert(X), readAndAssert(Str)).

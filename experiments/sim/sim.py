@@ -124,18 +124,18 @@ def simulate(n, m, epochs):
             for i in range(epochs):
                 print("Epoch:"+str(i))
                 if (i == 0):
-                    prolog_thread.query("[main],once(loadInfrastructure())")
+                    prolog_thread.query("[main],once(loadFile('infra.pl', [node/3, link/4, maxReplicas/1]))")
                 else:
-                    prolog_thread.query("once(loadInfrastructure())")  
+                    prolog_thread.query("once(loadFile('infra.pl', [node/3, link/4, maxReplicas/1]))")  
 
                 # TODO: handle timeout and false
 
                 try:
-                    result = prolog_thread.query("declace(P, Cost, Time)",query_timeout_seconds = 60)
+                    result = prolog_thread.query("once(declace(P, Cost, Time))",query_timeout_seconds = 60)
                     times.append(result[0]['Time'])
                     #print(result[0]['KOImages'])
                     print(result[0]['Cost'])
-                    # print(result[0]['NewPlacement'])
+                    print(result[0]['P'])
                     print("time:"+ str(result[0]['Time']))   
                     changeInfra(G)
                     write_to_file(G, "infra.pl") 
@@ -152,5 +152,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(500,3,30)
+simulate(256,3,30)
 
