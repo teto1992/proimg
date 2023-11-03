@@ -9,6 +9,41 @@ import math
 import json
 from swiplserver import PrologMQI, PrologThread
 
+class PrologServer:
+    # Initialises a new instance of the PrologServer class.
+    # If programs is not empty, loads the programs into the Prolog server.
+    # If datafiles is not empty, consults the datafiles into the Prolog server.
+    def __init__(self, programs = [], datafiles = []):
+        self.mqi = PrologMQI()
+        self.thread = self.mqi.create_thread()
+        for program in programs:
+            self.load_program(program)
+        for datafile in datafiles:
+            self.consult(datafile)
+
+    # Loads a program into the Prolog server through the [filename] predicate.
+    def load_program(self, filename: str):
+        return self.thread.query("[{}]".format(filename))
+
+    # Consults a datafile into the Prolog server through the loadFile predicate.
+    # Hack: loadFile implements a read&assert loop, faster than built-in consult. 
+    # It retracts all predicates specified in the to_retract string.
+    def consult(self, filename: str, to_retract: str = None):
+        if to_retract is None:
+            self.thread.query("loadFile('{}', [])".format(filename))
+        else:
+            self.thread.query("loadFile('{}',{})".format(filename, to_retract))
+    
+    # Returns the first result of the specified query within the specified timeout.
+    def query(self, query: str, timeout=60):
+        # throws exception at timeout
+        result = self.thread.query("once({})".format(query), query_timeout_seconds=timeout)
+        return result
+
+    # Stops the Prolog server.
+    def stop(self):
+        self.mqi.stop()
+
 
 def write_to_file(G, filename):
 
@@ -95,12 +130,12 @@ def changeInfra(G):
         if G.edges[i,j]['physical']:
             # link degradation
             if random.random() > 0.5:
-                change = random.uniform(0,0.25)
+                change = random.uniform(0.05,0.25)
                 G.edges[i,j]['latency'] += int(change * G.edges[i,j]['latency'])
                 G.edges[i,j]['bandwidth'] -= int(change * G.edges[i,j]['bandwidth'])
             # link improvement
             else:
-                change = random.uniform(0,0.25)
+                change = random.uniform(0.05,0.25)
                 G.edges[i,j]['latency'] -= int(change * G.edges[i,j]['latency'])
                 G.edges[i,j]['bandwidth'] += int(change * G.edges[i,j]['bandwidth'])
         else: # virtual link
@@ -119,19 +154,19 @@ def simulate(n, m, epochs):
 
     times = []
 
+    prolog = PrologServer()
+    prolog.load_program(['main', 'config'])
+
     with PrologMQI() as mqi:
         with mqi.create_thread() as prolog_thread:
             for i in range(epochs):
                 print("Epoch:"+str(i))
-                if (i == 0):
-                    prolog_thread.query("[main],once(loadFile('infra.pl', [node/3, link/4, maxReplicas/1]))")
-                else:
-                    prolog_thread.query("once(loadFile('infra.pl', [node/3, link/4, maxReplicas/1]))")  
-
-                # TODO: handle timeout and false
+                
+                prolog.consult(filename='images.pl', to_retract='[image(_,_,_)]')
+                prolog.consult(filename='infra.pl', to_retract='[node(_,_,_), link(_,_,_,_), maxReplicas(_)]')  
 
                 try:
-                    result = prolog_thread.query("once(declace(P, Cost, Time))",query_timeout_seconds = 60)
+                    result = prolog.query("declace(P, Cost, Time)", 60)
                     times.append(result[0]['Time'])
                     #print(result[0]['KOImages'])
                     print(result[0]['Cost'])
@@ -145,12 +180,11 @@ def simulate(n, m, epochs):
                     print("timeout exceeded")
                     continue
 
-                
-
-    mqi.stop()
+            
+    prolog.stop()
 
     print(sum(times)/len(times))
                     
 
-simulate(256,3,30)
+simulate(256,3,10)
 
