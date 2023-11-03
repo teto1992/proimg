@@ -5,7 +5,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "proimg"
+name = "declace"
 version = "0.0.1"
 authors = [
   { name="Stefano Forti", email="stefano.forti@unipi.it" },
@@ -27,7 +27,8 @@ dependencies = [
   "clingo", 
   "pyswip",
   "networkx", 
-  "numpy"
+  "numpy",
+  "swiplserver"
 ]
 
 [project.urls]

@@ -12,7 +12,7 @@ pip3 install dist/*.whl
 
 # Usage: ASP Image Placement
 ```bash
-usage: __main__.py [-h] [-d] [-o OUTPUT] infrastructure images
+usage: asp_solve.py [-h] [-d] [-o OUTPUT] infrastructure images
 
 positional arguments:
   infrastructure        File describing network architecture.

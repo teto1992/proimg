@@ -42,7 +42,7 @@ def path_bandwidth(G,path):
 def routing(G):
     paths = dict(nx.all_pairs_dijkstra(G, weight='latency'))
 
-    # complete graph with routing latency and bandwidth
+    # complete topology with routing latency and bandwidth
     for i in range(0,G.number_of_nodes()):
         for j in range(0,G.number_of_nodes()):
             if not ((i,j) in G.edges()):
@@ -106,7 +106,7 @@ def changeInfra(G):
         else: # virtual link
             G.remove_edge(i,j)
 
-    # complete graph with routing latency and bandwidth
+    # complete topology with routing latency and bandwidth
     G = routing(G)
 
     write_to_file(G, "infra.pl")

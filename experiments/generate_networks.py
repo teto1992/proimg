@@ -74,7 +74,7 @@ def generate_infrastructure_barabasi_albert(
                     newlink='link(n'+str(j)+',n'+str(i)+','+str(link['latency'])+','+str(link['bandwidth'])+').\n'
                     f.write(newlink)
 
-                # complete graph with routing latency and bandwidth
+                # complete topology with routing latency and bandwidth
                 for i in range(0,number_of_nodes):
                     for j in range(0,number_of_nodes):
                         if not ((i,j) in G.edges()):
