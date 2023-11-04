@@ -20,9 +20,10 @@ class PrologContinuousReasoningService(CIPPReasoningService):
 
         self.scratch_directory.cleanup()
 
-    def _dump_problem(self, problem: Problem):
+    def _dump_previous_state(self, problem: Problem, placement: Placement):
         with Path(self.scratch_directory.name, 'instance.pl').open('w') as f:
-            f.write(problem.as_facts)
+            f.write(problem.as_facts + '\n')
+            f.write(placement.as_facts + '\n')
             f.flush()
 
     def _load_problem(self):
@@ -40,21 +41,18 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         for atom in query_result['P']:
             image, node = atom['args']
             image_to_nodes[image].append(node)
-        return image_to_nodes
+        return Placement(query_result['Cost'], image_to_nodes)
 
     def cr_solve(self, problem: Problem, placement: Placement, timeout: int) -> Placement:
         if not self.prolog_server.alive:
             self.prolog_server.start()
 
         # Write to tempfile & load to PrologServer
-        self._dump_problem(problem)
+        self._dump_previous_state(problem, placement)
         self._load_problem()
 
         # Query PrologServer for declare(P,Cost,Time)
-        result = self.prolog_server.query(PrologQuery.from_string("declace", "P,Cost,Time"), timeout=timeout)
+        query_result = self.prolog_server.query(PrologQuery.from_string("declace", "P,Cost,Time"), timeout=timeout)
 
         # Parse result into a placement object
-        return Placement(
-            cost=result['Cost'],
-            placement=self._ans_to_obj(result)
-        )
+        return self._ans_to_obj(query_result)
