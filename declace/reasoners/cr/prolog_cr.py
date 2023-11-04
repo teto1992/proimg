@@ -25,13 +25,12 @@ class PrologContinuousReasoningService(CIPPReasoningService):
 
         self.scratch_directory.cleanup()
 
-    def _dump_previous_state(self, problem: Problem, placement: Placement):
+    def _set_up_datafile(self, problem: Problem, placement: Placement):
         with Path(self.scratch_directory.name, "instance.pl").open("w") as f:
             f.write(problem.as_facts + "\n")
             f.write(placement.as_facts + "\n")
             f.flush()
 
-    def _load_problem(self):
         data = PrologDatafile(
             path=Path(self.scratch_directory.name, "instance.pl"),
             retractions=PrologPredicate.from_strings(
@@ -55,8 +54,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
             self.prolog_server.start()
 
         # Write to tempfile & load to PrologServer
-        self._dump_previous_state(problem, placement)
-        self._load_problem()
+        self._set_up_datafile(problem, placement)
 
         # Query PrologServer for declare(P,Cost,Time)
         query_result = self.prolog_server.query(
