@@ -20,7 +20,7 @@ class Messages:
 
 
 class Context:
-    def __init__(self, debug=False, precision=None):
+    def __init__(self, debug=False, precision=3):
         # TODO: Unità di misura, cifre aritmetica
         self.precision = precision
         self.debug = debug
@@ -106,6 +106,10 @@ class SolutionCallback:
 class ASPOptimalReasoningService(OIPPReasoningService):
     SOURCE_FOLDER = Path(__file__).parent / 'asp_opt_source'
 
+
+    def cleanup(self):
+        pass
+
     def __init__(self):
         # cost_at_time[i] = (a, b) -> i-th candidate model has cost a, found at time b
         # TODO: Refactor into a Stats class
@@ -127,6 +131,8 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         with ctl.solve(async_=True, on_model=cb) as handle:
             handle.wait(timeout)
             ans = handle.get()
+
+            print(ans)
 
             if ans.unsatisfiable:
                 raise UnsatisfiablePlacement()

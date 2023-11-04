@@ -103,7 +103,7 @@ class Placement:
 class Problem:
     images: typing.Iterable[Image]
     network: NetworkSnapshot
-    max_replicas: int = 6
+    max_replicas: int
 
     @property
     def as_facts(self):

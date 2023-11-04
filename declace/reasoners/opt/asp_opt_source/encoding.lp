@@ -6,6 +6,7 @@
 %%%%%% 
 
 % Each image is deployed to at least one node,
+max_replicas(Img,R) :- image(Img,_,_), maxReplicas(R).
 1 { placement(Img, NodeID): node(NodeID, _, _)} R :- image(Img, _, _), max_replicas(Img,R).
 
 % Compute transfer times

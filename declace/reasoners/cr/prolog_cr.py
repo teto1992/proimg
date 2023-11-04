@@ -24,6 +24,9 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         )
         self.scratch_directory = tempfile.TemporaryDirectory()
 
+    def cleanup(self):
+        return self.__del__()
+
     def __del__(self):
         if self.prolog_server.alive:
             self.prolog_server.stop()
@@ -45,12 +48,15 @@ class PrologContinuousReasoningService(CIPPReasoningService):
 
         self.prolog_server.load_datafile(data)
 
-    def _ans_to_obj(self, query_result):
-        image_to_nodes = defaultdict(lambda: [], dict())
+    def _ans_to_obj(self, query_result, images):
+        image_id_to_image = {i.id: i for i in images}
+
+        node_has_images = defaultdict(lambda: [], dict())
         for atom in query_result["P"]:
-            image, node = atom["args"]
-            image_to_nodes[image].append(node)
-        return Placement(query_result["Cost"], image_to_nodes)
+            image_id, node = atom["args"]
+            node_has_images[node].append(image_id_to_image[image_id])
+
+        return Placement(query_result["Cost"], node_has_images)
 
     def cr_solve(
         self, problem: Problem, placement: Placement, timeout: int
@@ -65,7 +71,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         try:
             query_result = self.prolog_server.query(
                 PrologQuery.from_string("declace", "P,Cost,Time"), timeout=timeout
-            )
+            )[0]
 
         except swiplserver.PrologQueryTimeoutError:
             raise UnsatisfiableContinuousReasoning()
@@ -74,4 +80,6 @@ class PrologContinuousReasoningService(CIPPReasoningService):
             raise RuntimeError("A Prolog error that is unrelated to timeouts:", e)
 
         # Parse result into a placement object
-        return self._ans_to_obj(query_result)
+        computed_placement = self._ans_to_obj(query_result, problem.images)
+
+        return computed_placement
