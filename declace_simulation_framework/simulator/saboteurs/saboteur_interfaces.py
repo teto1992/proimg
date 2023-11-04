@@ -50,4 +50,4 @@ class InstanceSaboteur:
         images = [self.image.ruin(i, state) for i in problem.images]
         nodes = [self.node.ruin(n, state) for n in problem.network.nodes]
         links = [self.link.ruin(l, state) for l in problem.network.links]
-        return Problem(images, NetworkSnapshot(nodes, links))
+        return Problem(images, NetworkSnapshot(nodes, links), problem.max_replicas)
