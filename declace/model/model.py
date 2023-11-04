@@ -105,7 +105,7 @@ class Problem:
     network: NetworkSnapshot
     max_replicas: int = 6
 
-    @propertyid
+    @property
     def as_facts(self):
         prg = [
             "max_replicas({}).".format(self.max_replicas),

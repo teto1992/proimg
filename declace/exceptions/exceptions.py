@@ -4,3 +4,11 @@ class UnsatisfiablePlacement(Exception):
 
 class UnsatisfiableContinuousReasoning(Exception):
     pass
+
+
+class TimeoutContinuousReasoning(Exception):
+    pass
+
+
+class TimeoutOptimalPlacement(Exception):
+    pass
