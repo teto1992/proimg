@@ -4,7 +4,9 @@ from declace.model import Problem, Placement
 
 class CIPPReasoningService(ABC):
     @abstractmethod
-    def cr_solve(self, problem: Problem, placement: Placement, timeout: int) -> Placement:
+    def cr_solve(
+        self, problem: Problem, placement: Placement, timeout: int
+    ) -> Placement:
         pass
 
 

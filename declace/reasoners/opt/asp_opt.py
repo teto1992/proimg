@@ -17,7 +17,7 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         ctl = clingo.Control(["--models=1", "--opt-mode=optN"])
 
         # Serialize problem into a set of facts
-        ctl.load(...) # encoding
+        ctl.load(...)  # encoding
         ctl.add(problem.as_facts)
 
         # Run the solver

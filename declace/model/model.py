@@ -96,7 +96,7 @@ class Placement:
         for node_id, images in self.placement.items():
             for image in images:
                 prg.append("at({}, {}).".format(node_id, image.id))
-        return '\n'.join(prg)
+        return "\n".join(prg)
 
 
 @dataclasses.dataclass(frozen=True)
