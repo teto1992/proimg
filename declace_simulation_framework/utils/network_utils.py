@@ -49,11 +49,17 @@ def snapshot_closure(network: NetworkSnapshot) -> NetworkSnapshot:
     """
 
     graph = as_nx_graph(network)
-    paths = dict(nx.all_pairs_dijkstra(graph, weight="latency"))
-
     node_ids = [int(x) for x in graph.nodes]
     all_edges = itertools.combinations(node_ids, 2)
     virtual_edges = [e for e in all_edges if e not in graph.edges]
+
+    for i, j in virtual_edges:
+        graph.add_edge(i, j, latency=math.inf, bandwidth=math.inf)
+
+    # a volte il grafo non è connesso quindi in fare paths[i][0][j] sotto scoppia
+    # li aggiungo prima con lat, band infinita tanto dijkstra fa shortest path su latency
+    # e fa min di bandwidth
+    paths = dict(nx.all_pairs_dijkstra(graph, weight="latency"))
 
     def virtual_link(i, j):
         # Sum of latencies
@@ -66,7 +72,9 @@ def snapshot_closure(network: NetworkSnapshot) -> NetworkSnapshot:
         ]
 
         # The virtual link has the sum of latencies & minimum bandwidth
-        return Link(i, j, latency, min(bandwidths_along_path))
+        link = Link(i, j, latency, min(bandwidths_along_path))
+
+        return link
 
     return NetworkSnapshot(
         network.nodes,
