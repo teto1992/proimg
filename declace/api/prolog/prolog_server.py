@@ -12,12 +12,12 @@ class PrologQuery:
 
     @property
     def as_atom(self):
-        return '{}({})'.format(self.predicate_name, ', '.join(self.varnames))
-
+        return "{}({})".format(self.predicate_name, ", ".join(self.varnames))
 
     @staticmethod
     def from_string(pname, vars):
-        return PrologQuery(pname, vars.split(','))
+        return PrologQuery(pname, vars.split(","))
+
 
 @dataclass(frozen=True)
 class PrologPredicate:
@@ -26,7 +26,7 @@ class PrologPredicate:
 
     @staticmethod
     def from_string(string):
-        pname, arity = string.split('/')
+        pname, arity = string.split("/")
         return PrologPredicate(pname, int(arity))
 
     @staticmethod
@@ -42,11 +42,15 @@ class PrologDatafile:
     @property
     def retract_signature(self):
         def retract_atom(predicate: PrologPredicate):
-            return '{}({})'.format(predicate.predicate_name, ','.join('_' for _ in range(predicate.arity)))
+            return "{}({})".format(
+                predicate.predicate_name, ",".join("_" for _ in range(predicate.arity))
+            )
 
-        return '[{}]'.format(', '.join(retract_atom(p) for p in self.retractions))
+        return "[{}]".format(", ".join(retract_atom(p) for p in self.retractions))
+
 
 # TODO: Prints are devs best friends, but maybe we want a logger.
+
 
 class PrologServer:
     def __init__(self, *programs: Path, verbose=False):
@@ -84,12 +88,13 @@ class PrologServer:
         self.thread.stop()
         self.mqi.stop()
 
-
     # Consults a datafile into the Prolog server through the loadFile predicate.
     # Hack: loadFile implements a read&assert loop, faster than built-in consult.
     # It retracts all predicates specified in the to_retract string.
     def load_datafile(self, datafile: PrologDatafile):
-        q = "loadFile('{}', [])".format(datafile.path.absolute(), datafile.retract_signature)
+        q = "loadFile('{}', [])".format(
+            datafile.path.absolute(), datafile.retract_signature
+        )
         if self.verbose:
             print("[VERBOSE] Loading a datafile, running query: {}".format(q))
         self.thread.query(q)
@@ -103,7 +108,10 @@ class PrologServer:
     def query(self, query: PrologQuery, timeout=60):
         q = "once({})".format(query.as_atom)
         if self.verbose:
-            print("[VERBOSE] Querying for {}".format(query.as_atom), "running query: {}".format(q))
+            print(
+                "[VERBOSE] Querying for {}".format(query.as_atom),
+                "running query: {}".format(q),
+            )
         result = self.thread.query(q, query_timeout_seconds=timeout)
 
         if self.verbose:
@@ -112,25 +120,26 @@ class PrologServer:
         return result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Node, Link, Image, MaxReplicas = PrologPredicate.from_strings(
-        'node/3', 'link/4', 'image/3', 'maxReplias/1'
+        "node/3", "link/4", "image/3", "maxReplias/1"
     )
 
-    Declace = PrologQuery.from_string('declace', 'P,Cost,Time')
+    Declace = PrologQuery.from_string("declace", "P,Cost,Time")
 
     server = PrologServer(
-        Path('/home/antonio/declace/example_prolog_inputs/config.pl'),
-        Path('/home/antonio/declace/example_prolog_inputs/main.pl'),
-        verbose=True
+        Path("/home/antonio/declace/example_prolog_inputs/config.pl"),
+        Path("/home/antonio/declace/example_prolog_inputs/main.pl"),
+        verbose=True,
     )
 
     with server:
-        infrastructure = Path('/home/antonio/declace/example_prolog_inputs/infra.pl')
-        images = Path('/home/antonio/declace/example_prolog_inputs/images.pl')
+        infrastructure = Path("/home/antonio/declace/example_prolog_inputs/infra.pl")
+        images = Path("/home/antonio/declace/example_prolog_inputs/images.pl")
 
-        server.load_datafile(PrologDatafile(infrastructure, retractions=[Node, Link, MaxReplicas]))
+        server.load_datafile(
+            PrologDatafile(infrastructure, retractions=[Node, Link, MaxReplicas])
+        )
         server.load_datafile(PrologDatafile(images, retractions=[Image]))
 
         ans = server.query(Declace, 5)
-
