@@ -77,16 +77,22 @@ class PrologServer:
         for p in self.programs:
             self.__load_program__(p)
 
-    def __enter__(self):
+    def start(self):
         self.__init_thread__()
         self.__load_programs__()
 
-    # Stops the Prolog server.
-    def __exit__(self, exc_type, exc_value, exc_tb):
+    def stop(self):
         if self.verbose:
             print("[VERBOSE] Stopping thread & quitting MQI")
         self.thread.stop()
         self.mqi.stop()
+
+    def __enter__(self):
+        self.start()
+
+    # Stops the Prolog server.
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.stop()
 
     # Consults a datafile into the Prolog server through the loadFile predicate.
     # Hack: loadFile implements a read&assert loop, faster than built-in consult.
