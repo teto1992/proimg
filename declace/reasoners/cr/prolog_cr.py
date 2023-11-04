@@ -6,8 +6,10 @@ from declace.api.prolog import (
     PrologQuery,
     PrologPredicate,
 )
+from declace.exceptions import UnsatisfiableContinuousReasoning
 from declace.model import Problem, Placement
 from declace.reasoners import CIPPReasoningService
+import swiplserver
 
 import tempfile
 
@@ -57,9 +59,16 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         self._set_up_datafile(problem, placement)
 
         # Query PrologServer for declare(P,Cost,Time)
-        query_result = self.prolog_server.query(
-            PrologQuery.from_string("declace", "P,Cost,Time"), timeout=timeout
-        )
+        try:
+            query_result = self.prolog_server.query(
+                PrologQuery.from_string("declace", "P,Cost,Time"), timeout=timeout
+            )
+
+        except swiplserver.PrologQueryTimeoutError:
+            raise UnsatisfiableContinuousReasoning()
+
+        except swiplserver.PrologError as e:
+            raise RuntimeError("A Prolog error that is unrelated to timeouts:", e)
 
         # Parse result into a placement object
         return self._ans_to_obj(query_result)
