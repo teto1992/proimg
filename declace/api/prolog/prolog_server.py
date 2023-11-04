@@ -132,7 +132,7 @@ class PrologServer:
 
 if __name__ == "__main__":
     Node, Link, Image, MaxReplicas = PrologPredicate.from_strings(
-        "node/3", "link/4", "image/3", "maxReplias/1"
+        "node/3", "link/4", "image/3", "maxReplicas/1"
     )
 
     Declace = PrologQuery.from_string("declace", "P,Cost,Time")

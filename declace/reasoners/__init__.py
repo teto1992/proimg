@@ -1,1 +1,1 @@
-from .reasoners import OptimalReasoningService, ContinuousReasoningService
+from .reasoners import OIPPReasoningService, CIPPReasoningService
