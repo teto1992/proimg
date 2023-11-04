@@ -90,6 +90,14 @@ class Placement:
             string.append("Images placed on {}: {}".format(node, [i for i in images]))
         return "\n".join(string)
 
+    @property
+    def as_facts(self):
+        prg = []
+        for node_id, images in self.placement.items():
+            for image in images:
+                prg.append("at({}, {}).".format(node_id, image.id))
+        return '\n'.join(prg)
+
 
 @dataclasses.dataclass(frozen=True)
 class Problem:
@@ -97,7 +105,7 @@ class Problem:
     network: NetworkSnapshot
     max_replicas: int = 6
 
-    @property
+    @propertyid
     def as_facts(self):
         prg = [
             "max_replicas({}).".format(self.max_replicas),
