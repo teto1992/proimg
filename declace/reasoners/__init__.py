@@ -1,1 +1,1 @@
-from .reasoners import OptimalReasoner, ContinuousReasoner
+from .reasoners import OptimalReasoningService, ContinuousReasoningService
