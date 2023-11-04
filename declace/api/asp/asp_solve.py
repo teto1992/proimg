@@ -162,7 +162,7 @@ def solve_optimal_from_files(infrastructure, images, debug=True, timeout=60):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    ctl = clingo.Control(["--models=1", "--opt-mode=optN"])
+    ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
     ctl.load(ENCODING)
     ctl.load(infrastructure)
     ctl.load(images)

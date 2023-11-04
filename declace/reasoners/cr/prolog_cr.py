@@ -34,6 +34,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         self.scratch_directory.cleanup()
 
     def _set_up_datafile(self, problem: Problem, placement: Placement):
+
         with Path(self.scratch_directory.name, "instance.pl").open("w") as f:
             f.write(problem.as_facts + "\n")
             f.write(placement.as_facts + "\n")
@@ -42,7 +43,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         data = PrologDatafile(
             path=Path(self.scratch_directory.name, "instance.pl"),
             retractions=PrologPredicate.from_strings(
-                "node/3", "link/4", "image/3", "maxReplicas/1"
+                "node/3", "link/4", "image/3", "maxReplicas/1", "at/2"
             ),
         )
 
@@ -51,10 +52,17 @@ class PrologContinuousReasoningService(CIPPReasoningService):
     def _ans_to_obj(self, query_result, images):
         image_id_to_image = {i.id: i for i in images}
 
-        node_has_images = defaultdict(lambda: [], dict())
+        #### Atomi duplicati nelle risposte di Prolog?
+        query_ans = set()
         for atom in query_result["P"]:
-            image_id, node = atom["args"]
-            node_has_images[node].append(image_id_to_image[image_id])
+            query_ans.add(tuple(atom['args']))
+        ####
+
+        print("CLEANED UP QUERY_ANS:", query_ans)
+
+        node_has_images = defaultdict(lambda: [], dict())
+        for image, node in query_ans:
+            node_has_images[node].append(image_id_to_image[image])
 
         return Placement(query_result["Cost"], node_has_images)
 

@@ -1,14 +1,14 @@
-class UnsatisfiablePlacement(Exception):
+class UnsatisfiablePlacement(BaseException):
     pass
 
 
-class UnsatisfiableContinuousReasoning(Exception):
+class UnsatisfiableContinuousReasoning(BaseException):
     pass
 
 
-class TimeoutContinuousReasoning(Exception):
+class TimeoutContinuousReasoning(BaseException):
     pass
 
 
-class TimeoutOptimalPlacement(Exception):
+class TimeoutOptimalPlacement(BaseException):
     pass

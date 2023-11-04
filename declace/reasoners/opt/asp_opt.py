@@ -48,7 +48,7 @@ def project_answer_set(model):
 
 
 class SolutionCallback:
-    def __init__(self, debug=False):
+    def __init__(self, debug=True):
         self._placement = None
         self._cost = None
         self._optimal = False
@@ -77,6 +77,7 @@ class SolutionCallback:
             return True
 
         # self.current_time = time.time()
+        assert model.optimality_proven
         self._placement = atoms
         self._cost = model.cost
         self._optimal = True
@@ -117,7 +118,7 @@ class ASPOptimalReasoningService(OIPPReasoningService):
 
     def opt_solve(self, problem: Problem, timeout: int) -> Placement:
         # Initialize a Clingo
-        ctl = clingo.Control(["--models=1", "--opt-mode=optN"])
+        ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
         ctl.load((ASPOptimalReasoningService.SOURCE_FOLDER / 'encoding.lp').as_posix())  # encoding
 
         # Serialize problem into a set of facts
@@ -125,14 +126,15 @@ class ASPOptimalReasoningService(OIPPReasoningService):
 
         # Grounding
         ctl.ground([("base", [])], context=Context(debug=True))
+        print("GROUND?")
 
         # Solving
-        cb = SolutionCallback()
-        with ctl.solve(async_=True, on_model=cb) as handle:
+        cb = SolutionCallback(True)
+        with ctl.solve(async_=True, on_model=cb, on_core=lambda x: print("CORE", x), on_unsat=lambda x: print("UNSAT,", x)) as handle:
+            start = time.time()
             handle.wait(timeout)
+            print("End search!", time.time() - start)
             ans = handle.get()
-
-            print(ans)
 
             if ans.unsatisfiable:
                 raise UnsatisfiablePlacement()

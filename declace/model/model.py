@@ -4,7 +4,10 @@ import typing
 from math import ceil
 
 
-def fixed_precision(value, precision):
+def fixed_precision(value, precision, inf):
+    if math.isinf(value):
+        return inf
+
     return int(math.ceil(value * 10**precision))
 
 
@@ -31,8 +34,8 @@ class Link:
         return "link(n{}, n{}, {}, {})".format(
             self.source,
             self.target,
-            fixed_precision(self.latency, precision),
-            fixed_precision(self.bandwidth, precision),
+            fixed_precision(self.latency, precision, inf=9999),
+            fixed_precision(self.bandwidth, precision, inf=1),
         )
 
 
@@ -45,7 +48,7 @@ class Image:
     @property
     def atom(self, precision=3):
         return "image({}, {}, {})".format(
-            self.id, self.size, fixed_precision(self.max_transfer_time, precision)
+            self.id, self.size, fixed_precision(self.max_transfer_time, precision, None)
         )
 
 
@@ -87,7 +90,7 @@ class Placement:
     def __str__(self):
         string = ["A solution with cost {}.".format(self.cost)]
         for node, images in self.placement.items():
-            string.append("Images placed on {}: {}".format(node, [i for i in images]))
+            string.append("Images placed on {}: {}".format(node, [i.id for i in images]))
         return "\n".join(string)
 
     @property
