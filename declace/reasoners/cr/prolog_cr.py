@@ -15,9 +15,12 @@ import tempfile
 
 
 class PrologContinuousReasoningService(CIPPReasoningService):
-    def __init__(self, prolog_encoding: Path, verbose_server=True):
+    SOURCE_FOLDER = Path(__file__).parent / 'prolog_cr_source'
+
+    def __init__(self, verbose_server=True):
+        src = PrologContinuousReasoningService.SOURCE_FOLDER
         self.prolog_server: PrologServer = PrologServer(
-            prolog_encoding, verbose=verbose_server
+            src / 'config.pl', src / 'main.pl', verbose=verbose_server
         )
         self.scratch_directory = tempfile.TemporaryDirectory()
 
