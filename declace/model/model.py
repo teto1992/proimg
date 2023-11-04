@@ -122,3 +122,6 @@ class Problem:
             prg.append("{}.".format(link.atom))
 
         return "\n".join(prg)
+
+    def change_underlying_network(self, network: NetworkSnapshot) -> 'Problem':
+        return Problem(self.images, network, self.max_replicas)
