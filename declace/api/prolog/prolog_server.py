@@ -59,6 +59,10 @@ class PrologServer:
         self.thread: Optional[PrologThread] = None
         self.verbose = verbose
 
+    @property
+    def alive(self):
+        return self.thread is not None
+
     def __init_thread__(self):
         self.thread = self.mqi.create_thread()
         if self.verbose:
