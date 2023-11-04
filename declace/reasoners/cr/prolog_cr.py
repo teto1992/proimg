@@ -9,7 +9,7 @@ class PrologContinuousReasoningService(ContinuousReasoningService):
     def __init__(self, prolog_encoding: Path, verbose_server=True):
         self.prolog_server: PrologServer = PrologServer(prolog_encoding, verbose=verbose_server)
 
-    def cr_solve(self, problem: Problem, placement: Placement) -> Placement:
+    def cr_solve(self, problem: Problem, placement: Placement, timeout: float) -> Placement:
 
         # TODO: Non mi piace, chi si ricorda di fare stop del Prolog server?
         if not self.prolog_server.alive:
