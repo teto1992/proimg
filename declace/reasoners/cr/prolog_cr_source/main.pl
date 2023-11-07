@@ -24,8 +24,8 @@ crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :-
     placedImages(Placement, Alloc, _), %reverse(Images, RevImages), % start with the smallest images
     crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
-crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 
-    placement(Images, Nodes, MaxR, [], InitialPlacement, Cost).
+% crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 
+%     placement(Images, Nodes, MaxR, [], InitialPlacement, Cost).
 
 /* Identifies images to be replaced (i.e. new images or images with problems on storage or transfer times) */
 crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, KO) :-
@@ -130,3 +130,10 @@ loadFile(Filename, ToRetract) :-
 
 readAndAssert(Str) :-
     read(Str, X), (X == end_of_file -> close(Str) ; assert(X), readAndAssert(Str)).
+
+% Load ASP placement
+loadASP() :- once(loadASPPlacement()).
+loadASPPlacement() :-
+    findall(at(I,N), at(I,N), Placement),
+    allocatedStorage(Placement, Alloc), cost(Placement, Cost),
+    (retractall(at(_,_)); true), storePlacement(Placement, Alloc, Cost).

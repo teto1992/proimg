@@ -186,5 +186,5 @@ def simulate(n, m, epochs):
     print(sum(times)/len(times))
                     
 
-simulate(256,3,10)
+simulate(1024,3,10)
 
