@@ -48,6 +48,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         )
 
         self.prolog_server.load_datafile(data)
+        self.prolog_server.query(PrologQuery.from_string("loadASP", ""))
 
     def _ans_to_obj(self, query_result, images):
         image_id_to_image = {i.id: i for i in images}
