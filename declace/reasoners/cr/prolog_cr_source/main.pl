@@ -1,11 +1,18 @@
 :- consult('config.pl').
 
+
 declace(Placement, Cost, Time) :-
     imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
     statistics(cputime, Start),
     once(crPlacement(Images, Nodes, MaxR, Placement, Cost)),
     statistics(cputime, End),
     Time is End - Start.
+
+placement(Placement, Cost, Time) :-
+    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
+    statistics(cputime, Start),
+    placement(Images, Nodes, MaxR, [], Placement, Cost),
+    statistics(cputime), Time is End - Start.
 
 % Sorts images by size in descending order
 imagesToPlace(Images) :-
@@ -37,12 +44,6 @@ crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, KO) :-
 crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, [I|KO]) :-
     crStep(Is, Nodes, MaxR, P, POk, NewPOk, Alloc, KO).
 crStep([], _, _, _, POk, POk, _, []).
-
-placement(Placement, Cost, Time) :-
-    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
-    statistics(cputime, Start),
-    placement(Images, Nodes, MaxR, [], Placement, Cost),
-    statistics(cputime), Time is End - Start.
 
 bestPlacement(P, Cost) :-
     imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
