@@ -21,7 +21,8 @@ networkNodes(Nodes) :-
 
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
-    placedImages(Placement, Alloc, _), %reverse(Images, RevImages), % start with the smallest images
+    placedImages(Placement, Alloc, C), %reverse(Images, RevImages), % start with the smallest image
+    writeln(placedImages(Placement,Alloc, C)),
     crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
 % crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 

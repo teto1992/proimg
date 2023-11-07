@@ -12,7 +12,8 @@ if __name__ == '__main__':
     r = RandomState(1)
 
     g = NetworkGenerator(
-        BarabasiAlbert(n=1000, m=3),
+        #BarabasiAlbert(n=1000, m=3),
+        ErdosRenyi(n=1000, p=0.05),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(64000, 128000, 256000, 512000), 0.2),

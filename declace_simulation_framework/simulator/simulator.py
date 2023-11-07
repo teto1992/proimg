@@ -54,7 +54,7 @@ class Simulator:
 
         current_problem = self.original_problem.change_underlying_network(closure)
         current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
-        #
+        # print(current_placement)
 
         print("First shot: {:.3f}".format((time.time() - now) - net_preprocessing_time))
         print("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
