@@ -43,7 +43,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         data = PrologDatafile(
             path=Path(self.scratch_directory.name, "instance.pl"),
             retractions=PrologPredicate.from_strings(
-                "node/3", "link/4", "image/3", "maxReplicas/1", "at/2"
+                "node/3", "link/4", "image/3", "maxReplicas/1"
             ),
         )
 
@@ -53,15 +53,14 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         image_id_to_image = {i.id: i for i in images}
 
         #### Atomi duplicati nelle risposte di Prolog?
-        query_ans = set()
-        for atom in query_result["P"]:
-            query_ans.add(tuple(atom['args']))
+        #query_ans = set()
+        #for atom in query_result["P"]:
+        #    query_ans.add(tuple(atom['args']))
         ####
 
-        print("CLEANED UP QUERY_ANS:", query_ans)
-
         node_has_images = defaultdict(lambda: [], dict())
-        for image, node in query_ans:
+        for dict_ in query_result['P']:
+            image, node = dict_['args']
             node_has_images[node].append(image_id_to_image[image])
 
         return Placement(query_result["Cost"], node_has_images)
@@ -79,7 +78,13 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         try:
             query_result = self.prolog_server.query(
                 PrologQuery.from_string("declace", "P,Cost,Time"), timeout=timeout
-            )[0]
+            )
+
+            if not query_result:
+                raise UnsatisfiableContinuousReasoning()
+
+            else:
+                query_result = query_result[0]
 
         except swiplserver.PrologQueryTimeoutError:
             raise UnsatisfiableContinuousReasoning()

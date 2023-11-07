@@ -12,7 +12,7 @@ if __name__ == '__main__':
     r = RandomState(1)
 
     g = NetworkGenerator(
-        BarabasiAlbert(n=250, m=5),
+        BarabasiAlbert(n=50, m=5),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(150, 175, 200), 0.5),
@@ -39,14 +39,14 @@ if __name__ == '__main__':
     ]
 
     original_problem = Problem(images, g.generate(r), 100)
-    print("Barabasi generato?")
 
     simulator = Simulator(
         original_problem,
         saboteur,
         0.15,
         2,
-        5
+        5,
+        verbose=True
     )
 
     simulator.simulate(100, r)

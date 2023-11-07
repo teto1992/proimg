@@ -107,7 +107,6 @@ class SolutionCallback:
 class ASPOptimalReasoningService(OIPPReasoningService):
     SOURCE_FOLDER = Path(__file__).parent / 'asp_opt_source'
 
-
     def cleanup(self):
         pass
 
@@ -118,7 +117,7 @@ class ASPOptimalReasoningService(OIPPReasoningService):
 
     def opt_solve(self, problem: Problem, timeout: int) -> Placement:
         # Initialize a Clingo
-        ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
+        ctl = clingo.Control(["--models=0", "--opt-mode=opt"])
         ctl.load((ASPOptimalReasoningService.SOURCE_FOLDER / 'encoding.lp').as_posix())  # encoding
 
         # Serialize problem into a set of facts
@@ -126,14 +125,11 @@ class ASPOptimalReasoningService(OIPPReasoningService):
 
         # Grounding
         ctl.ground([("base", [])], context=Context(debug=True))
-        print("GROUND?")
 
         # Solving
         cb = SolutionCallback(True)
         with ctl.solve(async_=True, on_model=cb, on_core=lambda x: print("CORE", x), on_unsat=lambda x: print("UNSAT,", x)) as handle:
-            start = time.time()
             handle.wait(timeout)
-            print("End search!", time.time() - start)
             ans = handle.get()
 
             if ans.unsatisfiable:
@@ -143,4 +139,5 @@ class ASPOptimalReasoningService(OIPPReasoningService):
                 raise RuntimeError("Something was wrong in the clingo call, timeout?")
 
         # Parse the answer back into a Placement
+        print("Intermediate solutions:", len(cb.intermediate_solutions))
         return cb.best_known_placement

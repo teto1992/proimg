@@ -53,7 +53,7 @@ class PrologDatafile:
 
 
 class PrologServer:
-    def __init__(self, *programs: Path, verbose=False):
+    def __init__(self, *programs: Path, verbose=True):
         self.mqi = PrologMQI()
         self.programs = programs
         self.thread: Optional[PrologThread] = None
@@ -102,7 +102,7 @@ class PrologServer:
     # Hack: loadFile implements a read&assert loop, faster than built-in consult.
     # It retracts all predicates specified in the to_retract string.
     def load_datafile(self, datafile: PrologDatafile):
-        q = "loadFile('{}', [])".format(
+        q = "loadFile('{}', {})".format(
             datafile.path.absolute(), datafile.retract_signature
         )
         if self.verbose:
