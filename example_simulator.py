@@ -12,38 +12,38 @@ if __name__ == '__main__':
     r = RandomState(1)
 
     g = NetworkGenerator(
-        BarabasiAlbert(n=50, m=5),
+        BarabasiAlbert(n=1000, m=3),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(150, 175, 200), 0.5),
-                (UniformDiscrete(50, 75, 100), 0.5)
+                (UniformDiscrete(64000, 128000, 256000, 512000), 0.2),
+                (UniformDiscrete(8000, 16000, 32000), 0.8)
             ),
-            cost=UniformDiscrete(1, 2, 3, 4, 5)
+            cost=UniformDiscrete(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         ),
         LinkGenerator(
-            latency=UniformDiscrete(0.5, 1.0, 1.5),
-            bandwidth=UniformDiscrete(400, 500, 600)
+            latency=UniformDiscrete(*list(range(1,21))),
+            bandwidth=UniformDiscrete(*list(range(5, 500)))
         )
     )
 
     saboteur = InstanceSaboteur(
-        NodeStorageWobble(UniformContinuous(-0.02, 0.10)),
-        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.05, 0.20)),
-        ImageSizeWobble(UniformContinuous(0.0, 0.25))
+        NodeStorageWobble(UniformContinuous(-0.20, 0.20)),
+        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.25, 0.25)),
+        ImageSizeWobble(UniformContinuous(-0.10, 0.10))
     )
 
     images = [
-        Image("ubuntu", 5, 120.0),
-        Image("busybox", 8, 120.0),
-        Image("swipl", 3, 120.0),
+        Image("alpine", 8, 30.0),
+        Image("ubuntu", 69, 60.0),
+        Image("nginx", 192, 120.0)
     ]
 
-    original_problem = Problem(images, g.generate(r), 100)
+    original_problem = Problem(images, g.generate(r), max_replicas=6)
 
     simulator = Simulator(
         original_problem,
         saboteur,
-        0.15,
+        0.10,
         2,
         5,
         verbose=True

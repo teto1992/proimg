@@ -119,12 +119,17 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         # Initialize a Clingo
         ctl = clingo.Control(["--models=0", "--opt-mode=opt"])
         ctl.load((ASPOptimalReasoningService.SOURCE_FOLDER / 'encoding.lp').as_posix())  # encoding
+        print("Loaded ASP encoding")
 
         # Serialize problem into a set of facts
         ctl.add("base", [], problem.as_facts)
+        print("Loaded Problem-as-facts")
 
         # Grounding
+        ground_start = time.time()
+        print("GROUNDING START")
         ctl.ground([("base", [])], context=Context(debug=True))
+        print("GROUNDING TIME: {:.3f}s".format(time.time() - ground_start))
 
         # Solving
         cb = SolutionCallback(True)

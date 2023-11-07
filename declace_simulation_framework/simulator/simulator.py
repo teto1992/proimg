@@ -1,4 +1,5 @@
 import sys
+import time
 
 from declace.exceptions import UnsatisfiableContinuousReasoning, UnsatisfiablePlacement
 from declace.model import Problem
@@ -19,14 +20,14 @@ class Simulator:
             shutdown_probability: float,
             cr_timeout: int,
             opt_timeout: int,
-            verbose = True
+            verbose=True
     ):
         self.original_problem = problem
         self.saboteur = saboteur
         self.shutdown_probability = shutdown_probability
 
         self.opt = ASPOptimalReasoningService()
-        self.cr = PrologContinuousReasoningService(True)
+        self.cr = PrologContinuousReasoningService(verbose)
 
         self.cr_timeout = cr_timeout
         self.opt_timeout = opt_timeout
@@ -38,52 +39,62 @@ class Simulator:
         self.opt.cleanup()
 
     def simulate(self, n, random_state):
+        now = time.time()
+
+        preprocessing_time = time.time()
         # Solving OIPP
         pruned_network = prune_network(
             self.original_problem.network, self.shutdown_probability, random_state
         )
-
+        print("Pruning network for first solving shot")
 
         closure = snapshot_closure(pruned_network)
+        print("Computing network closure")
+        net_preprocessing_time = time.time() - preprocessing_time
 
         current_problem = self.original_problem.change_underlying_network(closure)
-
-
         current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
         #
-        print("Solving...?")
 
-        print(current_placement)
+        print("First shot: {:.3f}".format((time.time() - now) - net_preprocessing_time))
+        print("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
+        now = time.time()
 
         current_step = 1
         while current_step < n:
-            print("Current placement [{}]:".format(current_step))
-            print(current_placement)
             # Apply saboteurs + Network closure
+            preprocessing_time = time.time()
             current_network = prune_network(
                 self.original_problem.network, self.shutdown_probability, random_state
             )
             problem = self.saboteur.ruin(
                 current_problem.change_underlying_network(current_network), random_state
             )
+            current_network = snapshot_closure(problem.network)
+            net_preprocessing_time = time.time() - preprocessing_time
+            print("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
 
             try:
-                current_network = snapshot_closure(problem.network)
                 current_problem = problem.change_underlying_network(current_network)
-                current_placement = self.cr.cr_solve(current_problem, current_placement, self.cr_timeout)
-            except UnsatisfiableContinuousReasoning:
-                print("Continuous Reasoning timeout! Calling ASP.")
+                current_placement, prolog_solving_time = self.cr.cr_solve(current_problem, current_placement, self.cr_timeout)
+                print("CONTINUOUS REASONING OK, prolog solving time: {:.3f}s".format(prolog_solving_time))
+
+            except UnsatisfiableContinuousReasoning: # or timeout; name it better
+                print("CONTINUOUS REASONING FAIL")
+
                 try:
                     current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
+                    print("OPTIMAL REASONING OK")
+
                 except UnsatisfiablePlacement:
-                    print("No solution exists for this configuration.")
+                    print("OPTIMAL REASONING FAIL")
                     self.__cleanup__()
                     sys.exit(0)
 
             current_step += 1
+            print("Solving shot: {:.3f}, cost {}".format((time.time() - now) - net_preprocessing_time, current_placement.cost))
 
-        print("Current placement:")
-        print(current_placement)
+            now = time.time()
 
         self.__cleanup__()
 

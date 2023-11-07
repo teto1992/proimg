@@ -98,7 +98,8 @@ class Placement:
         prg = []
         for node_id, images in self.placement.items():
             for image in images:
-                prg.append("at({}, {}).".format(node_id, image.id))
+                # at(0, 'alpine')
+                prg.append("at({}, {}).".format(image, node_id))
         return "\n".join(prg)
 
 

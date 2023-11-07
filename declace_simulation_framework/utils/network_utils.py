@@ -1,6 +1,8 @@
 """
 A Network object models a (simplified) network topology, ...
 """
+import time
+
 import networkx as nx
 from numpy.random import RandomState
 import itertools
@@ -44,22 +46,10 @@ def as_nx_graph(network: NetworkSnapshot) -> nx.Graph:
 
 
 def snapshot_closure(network: NetworkSnapshot) -> NetworkSnapshot:
+    closure_computation_start = time.time()
     """
     Computes transitive closure of the network, introducing virtual edges and assigning them the worst-possible latency and bandwidth.
     """
-
-    graph = as_nx_graph(network)
-    node_ids = [int(x) for x in graph.nodes]
-    all_edges = itertools.combinations(node_ids, 2)
-    virtual_edges = [e for e in all_edges if e not in graph.edges]
-
-    for i, j in virtual_edges:
-        graph.add_edge(i, j, latency=math.inf, bandwidth=math.inf)
-
-    # a volte il grafo non è connesso quindi in fare paths[i][0][j] sotto scoppia
-    # li aggiungo prima con lat, band infinita tanto dijkstra fa shortest path su latency
-    # e fa min di bandwidth
-    paths = dict(nx.all_pairs_dijkstra(graph, weight="latency"))
 
     def virtual_link(i, j):
         # Sum of latencies
@@ -67,16 +57,31 @@ def snapshot_closure(network: NetworkSnapshot) -> NetworkSnapshot:
 
         # Bandwidths along the shortest path i--j
         path = paths[i][1][j]
-        bandwidths_along_path = [
-            graph.edges[path[x], path[x + 1]]["bandwidth"] for x in range(len(path) - 1)
-        ]
 
         # The virtual link has the sum of latencies & minimum bandwidth
-        link = Link(i, j, latency, min(bandwidths_along_path))
+        link = Link(i, j, latency, min(graph.edges[path[x], path[x+1]]["bandwidth"] for x in range(len(path)-1)))
 
         return link
 
+    graph = as_nx_graph(network)
+    node_ids = [int(x) for x in graph.nodes]
+
+    paths = dict(nx.all_pairs_dijkstra(graph, weight="latency"))
+
+    links = []
+    for i, j in itertools.combinations(node_ids, 2):
+        if not (i, j) in graph.edges:
+            try:
+                links.append(virtual_link(i, j))
+            except:
+                pass
+
+    closure_computation_end = time.time()
+
+    print("Closure computation: {:.3f}s".format(closure_computation_end - closure_computation_start))
+
+    links.extend(network.links)
     return NetworkSnapshot(
         network.nodes,
-        list(network.links) + [virtual_link(i, j) for i, j in virtual_edges],
+        links
     )
