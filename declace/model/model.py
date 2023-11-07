@@ -99,7 +99,7 @@ class Placement:
         for node_id, images in self.placement.items():
             for image in images:
                 # at(0, 'alpine')
-                prg.append("at({}, {}).".format(image, node_id))
+                prg.append("at({}, {}).".format(image.id, node_id))
         return "\n".join(prg)
 
 
