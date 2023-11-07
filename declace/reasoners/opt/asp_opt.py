@@ -101,7 +101,7 @@ class SolutionCallback:
 
             image_on_nodes[node].append(image)
 
-        return Placement(self._cost, image_on_nodes)
+        return Placement(self._cost / (10**3), image_on_nodes)
 
 
 class ASPOptimalReasoningService(OIPPReasoningService):
