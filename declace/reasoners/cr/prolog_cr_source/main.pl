@@ -112,7 +112,7 @@ storageOk(Placement, N, Size) :-
     usedHw(Placement, N, UsedHw),
     Storage + OldAlloc - UsedHw >= Size.
 
-cost(Placement, Cost) :- findall(CS, (member(at(I,N),Placement), image(I,S,_), node(N,_,C), CS is C/10*S), CSs), sum_list(CSs, Cost).
+cost(Placement, Cost) :- findall(CS, (member(at(I,N),Placement), image(I,S,_), node(N,_,C), CS is C*S), CSs), sum_list(CSs, Cost).
 
 usedHw(P, N, TotUsed) :- findall(S, (member(at(I,N), P), image(I,S,_)), Used), sum_list(Used, TotUsed).
 
