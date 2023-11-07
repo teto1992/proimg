@@ -12,7 +12,7 @@ placement(Placement, Cost, Time) :-
     imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
     statistics(cputime, Start),
     placement(Images, Nodes, MaxR, [], Placement, Cost),
-    statistics(cputime), Time is End - Start.
+    statistics(cputime, End), Time is End - Start.
 
 % Sorts images by size in descending order
 imagesToPlace(Images) :-
@@ -28,7 +28,7 @@ networkNodes(Nodes) :-
 
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
-    placedImages(Placement, Alloc, C), 
+    placedImages(Placement, Alloc, _), 
     crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
 % crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 
