@@ -1,1 +1,1 @@
-from .nx_wrappers import ErdosRenyi, BarabasiAlbert, GraphGenerator
+from .nx_wrappers import ErdosRenyi, BarabasiAlbert, GraphGenerator, TruncatedBarabasiAlbert

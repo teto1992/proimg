@@ -54,7 +54,9 @@ class Simulator:
 
         current_problem = self.original_problem.change_underlying_network(closure)
         current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
-        # print(current_placement)
+
+        # First optimal solution with ASP; inject into CR module
+        self.cr.update_placement(current_placement)
 
         print("First shot: {:.3f}".format((time.time() - now) - net_preprocessing_time))
         print("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
@@ -76,20 +78,28 @@ class Simulator:
 
             try:
                 current_problem = problem.change_underlying_network(current_network)
-                current_placement, prolog_solving_time = self.cr.cr_solve(current_problem, current_placement, self.cr_timeout)
+
+                # CR works, cr_solve self-updates the Placement
+                current_placement, prolog_solving_time = self.cr.cr_solve(current_problem, self.cr_timeout)
                 print("CONTINUOUS REASONING OK, prolog solving time: {:.3f}s".format(prolog_solving_time))
 
-            except UnsatisfiableContinuousReasoning: # or timeout; name it better
+            except UnsatisfiableContinuousReasoning:
+                # or timeout; name it better
                 print("CONTINUOUS REASONING FAIL")
 
                 try:
+                    # try to compute a new one with ASP, and update
                     current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
+                    self.cr.update_placement(current_placement)
                     print("OPTIMAL REASONING OK")
 
                 except UnsatisfiablePlacement:
                     print("OPTIMAL REASONING FAIL")
                     self.__cleanup__()
                     sys.exit(0)
+
+            # double check we have a valid placement for the next iteration
+            assert self.cr.placement is not None
 
             current_step += 1
             print("Solving shot: {:.3f}, cost {}".format((time.time() - now) - net_preprocessing_time, current_placement.cost))

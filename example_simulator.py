@@ -2,7 +2,7 @@ import sys
 from numpy.random import RandomState
 
 from declace.model import Image, Problem
-from declace_simulation_framework.generator.topology import BarabasiAlbert, ErdosRenyi
+from declace_simulation_framework.generator.topology import BarabasiAlbert, ErdosRenyi, TruncatedBarabasiAlbert
 from declace_simulation_framework.generator.attribute import UniformDiscrete, MultiModal, UniformContinuous
 from declace_simulation_framework.generator import LinkGenerator, NodeGenerator, NetworkGenerator
 from declace_simulation_framework.simulator import Simulator, InstanceSaboteur, NodeStorageWobble, \
@@ -12,7 +12,7 @@ if __name__ == '__main__':
     r = RandomState(1)
 
     g = NetworkGenerator(
-        BarabasiAlbert(n=100, m=3),
+        TruncatedBarabasiAlbert(n=500, m=3, k=3),
         #ErdosRenyi(n=100, p=0.05),
         NodeGenerator(
             storage=MultiModal(
@@ -39,12 +39,12 @@ if __name__ == '__main__':
         Image("nginx", 192, 120.0)
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=6)
+    original_problem = Problem(images, g.generate(r), max_replicas=10)
 
     simulator = Simulator(
         original_problem,
         saboteur,
-        0.10,
+        0.12,
         2,
         5,
         verbose=True

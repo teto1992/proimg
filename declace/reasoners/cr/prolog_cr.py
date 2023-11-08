@@ -18,6 +18,8 @@ class PrologContinuousReasoningService(CIPPReasoningService):
     SOURCE_FOLDER = Path(__file__).parent / 'prolog_cr_source'
 
     def __init__(self, verbose_server=True):
+        super().__init__(None)
+
         src = PrologContinuousReasoningService.SOURCE_FOLDER
         self.prolog_server: PrologServer = PrologServer(
             src / 'config.pl', src / 'main.pl', verbose=verbose_server
@@ -50,6 +52,8 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         self.prolog_server.load_datafile(data)
         self.prolog_server.query(PrologQuery.from_string("loadASP", ""))
 
+        self.last_ = None
+
     def _ans_to_obj(self, query_result, images):
         image_id_to_image = {i.id: i for i in images}
 
@@ -66,9 +70,13 @@ class PrologContinuousReasoningService(CIPPReasoningService):
 
         return Placement(query_result["Cost"], node_has_images)
 
-    def cr_solve(
-        self, problem: Problem, placement: Placement, timeout: int
-    ) -> Placement:
+    def cr_solve(self, problem: Problem, timeout: int) -> Placement:
+        assert self.placement is not None
+
+        placement = self.placement
+        # Now, set it to None
+        self.invalidate_placement()
+
         if not self.prolog_server.alive:
             self.prolog_server.start()
 
@@ -95,5 +103,8 @@ class PrologContinuousReasoningService(CIPPReasoningService):
 
         # Parse result into a placement object
         computed_placement = self._ans_to_obj(query_result, problem.images)
+
+        # If I don't reach this, the placement stays to None
+        self.update_placement(computed_placement)
 
         return computed_placement, query_result['Time']

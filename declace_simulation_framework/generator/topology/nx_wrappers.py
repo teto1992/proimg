@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import networkx as nx
 
 
@@ -28,6 +28,25 @@ class BarabasiAlbert(GraphGenerator):
         assert "m" in kwargs
         assert "seed" not in kwargs
         super().__init__(nx.generators.barabasi_albert_graph, **kwargs)
+
+class TruncatedBarabasiAlbert(GraphGenerator):
+    def __init__(self, **kwargs):
+        assert "n" in kwargs
+        assert "m" in kwargs
+        assert "k" in kwargs
+
+        self.k = kwargs['k']
+        del kwargs['k']
+
+        assert "seed" not in kwargs
+        super().__init__(nx.generators.barabasi_albert_graph, **kwargs)
+
+    def generate(self, random_state) -> nx.Graph:
+        g = super().generate(random_state)
+        for node_id in range(self.k):
+            g.remove_node(node_id)
+
+        return g
 
 
 class ErdosRenyi(GraphGenerator):
