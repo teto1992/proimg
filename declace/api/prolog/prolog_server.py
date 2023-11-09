@@ -6,6 +6,9 @@ from dataclasses import dataclass
 
 from loguru import logger
 
+LOG_LEVEL_NAME = "PROLOG_SERVER_WRAPPER"
+logger.level(LOG_LEVEL_NAME, no=15, color="<blue>")
+
 @dataclass(frozen=True)
 class PrologQuery:
     predicate_name: str
@@ -50,7 +53,6 @@ class PrologDatafile:
         return "[{}]".format(", ".join(retract_atom(p) for p in self.retractions))
 
 
-# TODO: Prints are devs best friends, but maybe we want a logger.
 
 
 class PrologServer:
@@ -65,13 +67,13 @@ class PrologServer:
 
     def __init_thread__(self):
         self.thread = self.mqi.create_thread()
-        logger.debug("Starting thread: {}".format(str(self.thread)))
+        logger.log(LOG_LEVEL_NAME, "Starting thread: {}".format(str(self.thread)))
 
     def __load_program__(self, p):
         # TODO: Nicer exceptions
         assert p.exists() and p.is_file()
         q = "['{}']".format(p.as_posix())
-        logger.debug("[VERBOSE] Loading a program, running query: {}".format(q))
+        logger.log(LOG_LEVEL_NAME, "Running query to load a program: {}".format(q))
         self.thread.query(q)
 
     def __load_programs__(self):
@@ -84,7 +86,7 @@ class PrologServer:
         self.__load_programs__()
 
     def stop(self):
-        logger.debug("[VERBOSE] Stopping thread & quitting MQI")
+        logger.log(LOG_LEVEL_NAME, "Stopping thread & quitting MQI")
         self.thread.stop()
         self.mqi.stop()
 
@@ -102,7 +104,7 @@ class PrologServer:
         q = "loadFile('{}', {})".format(
             datafile.path.absolute(), datafile.retract_signature
         )
-        logger.debug("[VERBOSE] Loading a datafile, running query: {}".format(q))
+        logger.log(LOG_LEVEL_NAME, "Running query to load a datafile: {}".format(q))
         self.thread.query(q)
 
     # def consult(self, filename: str, to_retract: str = None):
@@ -113,12 +115,9 @@ class PrologServer:
     # Returns the first result of the specified query within the specified timeout.
     def query(self, query: PrologQuery, timeout=60):
         q = "once({})".format(query.as_atom)
-        logger.debug(
-            "[VERBOSE] Querying for {}".format(query.as_atom),
-            "running query: {}".format(q),
-        )
+        logger.log(LOG_LEVEL_NAME, "Querying for {}, running {}".format(query.as_atom, q))
         result = self.thread.query(q, query_timeout_seconds=timeout)
 
-        logger.debug("[VERBOSE] Results for {}: {}".format(query.as_atom, result))
+        logger.log(LOG_LEVEL_NAME, "Query results on {}: {}".format(query.as_atom, result))
 
         return result
