@@ -8,6 +8,7 @@ from declace_simulation_framework.generator import LinkGenerator, NodeGenerator,
 from declace_simulation_framework.simulator import Simulator, InstanceSaboteur, NodeStorageWobble, \
     LinkTiedLatencyBandwidthWobble, ImageSizeWobble
 from declace_simulation_framework.simulator.saboteurs import NullSaboteur
+from declace.utils import enable_logging_channels
 
 from loguru import logger
 import loguru
@@ -22,10 +23,7 @@ def show_level(record):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        logging_level = sys.argv[1]
-        levels = logging_level.split(',')
-        logger.remove()
-        logger.add(sys.stderr, filter=lambda record: record['level'].name in levels)
+        enable_logging_channels(sys.argv[1].split(','))
 
     r = RandomState(1)
 
