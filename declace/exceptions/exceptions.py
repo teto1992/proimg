@@ -13,6 +13,7 @@ class SWIPLTimeout(BaseException):
 class NoStartingPlacementForContinuousReasoning(BaseException):
     pass
 
+
 class TimeoutContinuousReasoning(BaseException):
     pass
 

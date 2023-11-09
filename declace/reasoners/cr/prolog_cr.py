@@ -8,7 +8,10 @@ from declace.api.prolog import (
     PrologQuery,
     PrologPredicate,
 )
-from declace.exceptions import UnsatisfiableContinuousReasoning, NoStartingPlacementForContinuousReasoning
+from declace.exceptions import (
+    UnsatisfiableContinuousReasoning,
+    NoStartingPlacementForContinuousReasoning,
+)
 from declace.model import Problem, Placement
 from declace.reasoners import CIPPReasoningService
 import swiplserver
@@ -21,14 +24,14 @@ logger.level(LOG_LEVEL_NAME, no=15, color="<blue>")
 
 
 class PrologContinuousReasoningService(CIPPReasoningService):
-    SOURCE_FOLDER = Path(__file__).parent / 'prolog_cr_source'
+    SOURCE_FOLDER = Path(__file__).parent / "prolog_cr_source"
 
     def __init__(self):
         super().__init__()
 
         src = PrologContinuousReasoningService.SOURCE_FOLDER
         self.prolog_server: PrologServer = PrologServer(
-            src / 'config.pl', src / 'main.pl'
+            src / "config.pl", src / "main.pl"
         )
         self.scratch_directory = tempfile.TemporaryDirectory()
 
@@ -45,7 +48,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         FILENAME = "infrastructure.pl"
         with Path(self.scratch_directory.name, FILENAME).open("w") as f:
             f.write(problem.as_facts + "\n")
-            #f.write(placement.as_facts + "\n")
+            # f.write(placement.as_facts + "\n")
             f.flush()
 
         data = PrologDatafile(
@@ -66,14 +69,14 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         image_id_to_image = {i.id: i for i in images}
 
         #### Atomi duplicati nelle risposte di Prolog?
-        #query_ans = set()
-        #for atom in query_result["P"]:
+        # query_ans = set()
+        # for atom in query_result["P"]:
         #    query_ans.add(tuple(atom['args']))
         ####
 
         node_has_images = defaultdict(lambda: [], dict())
-        for dict_ in query_result['P']:
-            image, node = dict_['args']
+        for dict_ in query_result["P"]:
+            image, node = dict_["args"]
             node_has_images[node].append(image_id_to_image[image])
 
         return Placement(query_result["Cost"], node_has_images)
@@ -103,7 +106,9 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         # Rename to load infrastructure?
         self.prolog_server.query(PrologQuery.from_string("loadASP", ""))
 
-    def cr_solve(self, problem: Problem, timeout: int) -> Tuple[Placement, Dict[str, Any]]:
+    def cr_solve(
+        self, problem: Problem, timeout: int
+    ) -> Tuple[Placement, Dict[str, Any]]:
         if not self.can_perform_continuous_reasoning:
             raise NoStartingPlacementForContinuousReasoning()
 
@@ -132,10 +137,12 @@ class PrologContinuousReasoningService(CIPPReasoningService):
 
         except swiplserver.PrologError as e:
             self.invalidate_placement()
-            raise RuntimeError("A Prolog error that is unrelated to timeouts or unsatisfiability:", e)
+            raise RuntimeError(
+                "A Prolog error that is unrelated to timeouts or unsatisfiability:", e
+            )
 
         # Parse result into a placement object
         computed_placement = self._ans_to_obj(query_result, problem.images)
         self.current_placement = computed_placement
 
-        return computed_placement, query_result['Time']
+        return computed_placement, query_result["Time"]

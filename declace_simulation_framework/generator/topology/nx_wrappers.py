@@ -18,8 +18,8 @@ class GraphGenerator(ABC):
         raw_g = self.generator(seed=random_state, **self.kwargs)
         return raw_g
 
-        #node_mapping = dict(zip(raw_g.nodes(), sorted(raw_g.nodes(), key=lambda k: random_state.random())))
-        #return nx.relabel_nodes(raw_g, node_mapping)
+        # node_mapping = dict(zip(raw_g.nodes(), sorted(raw_g.nodes(), key=lambda k: random_state.random())))
+        # return nx.relabel_nodes(raw_g, node_mapping)
 
 
 class BarabasiAlbert(GraphGenerator):
@@ -29,14 +29,15 @@ class BarabasiAlbert(GraphGenerator):
         assert "seed" not in kwargs
         super().__init__(nx.generators.barabasi_albert_graph, **kwargs)
 
+
 class TruncatedBarabasiAlbert(GraphGenerator):
     def __init__(self, **kwargs):
         assert "n" in kwargs
         assert "m" in kwargs
         assert "k" in kwargs
 
-        self.k = kwargs['k']
-        del kwargs['k']
+        self.k = kwargs["k"]
+        del kwargs["k"]
 
         assert "seed" not in kwargs
         super().__init__(nx.generators.barabasi_albert_graph, **kwargs)

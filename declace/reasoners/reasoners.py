@@ -8,6 +8,7 @@ class CIPPReasoningService(ABC):
     """
     Interface for functionalities of continuous reasoning.
     """
+
     def __init__(self):
         self.current_placement = None
 
@@ -31,7 +32,7 @@ class CIPPReasoningService(ABC):
         Bootstraps the CR implementation with an initial placement.
         """
 
-        assert not self. can_perform_continuous_reasoning
+        assert not self.can_perform_continuous_reasoning
         self.current_placement = placement
 
     def invalidate_placement(self):
@@ -42,7 +43,9 @@ class CIPPReasoningService(ABC):
         self.current_placement = None
 
     @abstractmethod
-    def cr_solve(self, problem: Problem, timeout: int) -> Tuple[Placement, Dict[str, Any]]:
+    def cr_solve(
+        self, problem: Problem, timeout: int
+    ) -> Tuple[Placement, Dict[str, Any]]:
         """
         Solves the PP problem in a continuous reasoning fashion.
         """
@@ -51,5 +54,7 @@ class CIPPReasoningService(ABC):
 
 class OIPPReasoningService(ABC):
     @abstractmethod
-    def opt_solve(self, problem: Problem, timeout: int) -> Tuple[Placement, Dict[str, Any]]:
+    def opt_solve(
+        self, problem: Problem, timeout: int
+    ) -> Tuple[Placement, Dict[str, Any]]:
         pass

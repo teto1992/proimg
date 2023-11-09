@@ -9,6 +9,7 @@ from loguru import logger
 LOG_LEVEL_NAME = "PROLOG_SERVER_WRAPPER"
 logger.level(LOG_LEVEL_NAME, no=15, color="<blue>")
 
+
 @dataclass(frozen=True)
 class PrologQuery:
     predicate_name: str
@@ -51,8 +52,6 @@ class PrologDatafile:
             )
 
         return "[{}]".format(", ".join(retract_atom(p) for p in self.retractions))
-
-
 
 
 class PrologServer:
@@ -115,9 +114,13 @@ class PrologServer:
     # Returns the first result of the specified query within the specified timeout.
     def query(self, query: PrologQuery, timeout=60):
         q = "once({})".format(query.as_atom)
-        logger.log(LOG_LEVEL_NAME, "Querying for {}, running {}".format(query.as_atom, q))
+        logger.log(
+            LOG_LEVEL_NAME, "Querying for {}, running {}".format(query.as_atom, q)
+        )
         result = self.thread.query(q, query_timeout_seconds=timeout)
 
-        logger.log(LOG_LEVEL_NAME, "Query results on {}: {}".format(query.as_atom, result))
+        logger.log(
+            LOG_LEVEL_NAME, "Query results on {}: {}".format(query.as_atom, result)
+        )
 
         return result

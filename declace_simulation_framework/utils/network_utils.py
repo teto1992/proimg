@@ -10,6 +10,7 @@ from declace.model import *
 
 from loguru import logger
 
+
 def prune_network(
     network: NetworkSnapshot, shut_down_probability: float, random_state: RandomState
 ) -> NetworkSnapshot:
@@ -60,7 +61,15 @@ def snapshot_closure(network: NetworkSnapshot) -> NetworkSnapshot:
         path = paths[i][1][j]
 
         # The virtual link has the sum of latencies & minimum bandwidth
-        link = Link(i, j, latency, min(graph.edges[path[x], path[x+1]]["bandwidth"] for x in range(len(path)-1)))
+        link = Link(
+            i,
+            j,
+            latency,
+            min(
+                graph.edges[path[x], path[x + 1]]["bandwidth"]
+                for x in range(len(path) - 1)
+            ),
+        )
 
         return link
 
@@ -79,10 +88,11 @@ def snapshot_closure(network: NetworkSnapshot) -> NetworkSnapshot:
 
     closure_computation_end = time.time()
 
-    logger.debug("Closure computation: {:.3f}s".format(closure_computation_end - closure_computation_start))
+    logger.debug(
+        "Closure computation: {:.3f}s".format(
+            closure_computation_end - closure_computation_start
+        )
+    )
 
     links.extend(network.links)
-    return NetworkSnapshot(
-        network.nodes,
-        links
-    )
+    return NetworkSnapshot(network.nodes, links)

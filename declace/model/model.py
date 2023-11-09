@@ -18,6 +18,8 @@ def fixed_precision(value, inf):
     r = int(math.ceil(value * 10**PRECISION))
     logger.log(LOG_LEVEL_NAME, "Converting {} into {}[{}]".format(value, r, PRECISION))
     return r
+
+
 @dataclasses.dataclass(frozen=True)
 class Node:
     id: int
@@ -97,7 +99,9 @@ class Placement:
     def __str__(self):
         string = ["A solution with cost {}.".format(self.cost)]
         for node, images in self.placement.items():
-            string.append("Images placed on {}: {}".format(node, [i.id for i in images]))
+            string.append(
+                "Images placed on {}: {}".format(node, [i.id for i in images])
+            )
         return "\n".join(string)
 
     @property
@@ -134,5 +138,5 @@ class Problem:
 
         return "\n".join(prg)
 
-    def change_underlying_network(self, network: NetworkSnapshot) -> 'Problem':
+    def change_underlying_network(self, network: NetworkSnapshot) -> "Problem":
         return Problem(self.images, network, self.max_replicas)
