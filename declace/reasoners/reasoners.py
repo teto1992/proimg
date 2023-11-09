@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Dict, Any, Tuple
 
 from declace.model import Problem, Placement
 
@@ -42,7 +42,7 @@ class CIPPReasoningService(ABC):
         self.current_placement = None
 
     @abstractmethod
-    def cr_solve(self, problem: Problem, timeout: int) -> Placement:
+    def cr_solve(self, problem: Problem, timeout: int) -> Tuple[Placement, Dict[str, Any]]:
         """
         Solves the PP problem in a continuous reasoning fashion.
         """
@@ -51,5 +51,5 @@ class CIPPReasoningService(ABC):
 
 class OIPPReasoningService(ABC):
     @abstractmethod
-    def opt_solve(self, problem: Problem, timeout: int) -> Placement:
+    def opt_solve(self, problem: Problem, timeout: int) -> Tuple[Placement, Dict[str, Any]]:
         pass

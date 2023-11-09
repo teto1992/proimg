@@ -1,5 +1,7 @@
 from collections import defaultdict
 from pathlib import Path
+from typing import Tuple, Dict, Any
+
 from declace.api.prolog import (
     PrologServer,
     PrologDatafile,
@@ -101,7 +103,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         # Rename to load infrastructure?
         self.prolog_server.query(PrologQuery.from_string("loadASP", ""))
 
-    def cr_solve(self, problem: Problem, timeout: int) -> Placement:
+    def cr_solve(self, problem: Problem, timeout: int) -> Tuple[Placement, Dict[str, Any]]:
         if not self.can_perform_continuous_reasoning:
             raise NoStartingPlacementForContinuousReasoning()
 

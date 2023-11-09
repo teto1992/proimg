@@ -54,7 +54,7 @@ class Simulator:
         net_preprocessing_time = time.time() - preprocessing_time
 
         current_problem = self.original_problem.change_underlying_network(closure)
-        current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
+        current_placement, _ = self.opt.opt_solve(current_problem, self.opt_timeout)
         ##########################################################################
 
 
@@ -92,7 +92,7 @@ class Simulator:
 
                 try:
                     # try to compute a new one with ASP, and update
-                    current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
+                    current_placement, _ = self.opt.opt_solve(current_problem, self.opt_timeout)
                     self.cr.inject_placement(current_placement)
                     logger.log(LOG_LEVEL_NAME, "OPTIMAL REASONING OK")
 

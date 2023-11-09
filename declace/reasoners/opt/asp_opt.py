@@ -119,7 +119,7 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         self.cost_at_time: List[Tuple[int, float]] = []
         self.precision = precision
 
-    def opt_solve(self, problem: Problem, timeout: int) -> Placement:
+    def opt_solve(self, problem: Problem, timeout: int) -> tuple[Placement, None]:
         # Initialize a Clingo
         ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
         ctl.load((ASPOptimalReasoningService.SOURCE_FOLDER / 'encoding.lp').as_posix())  # encoding
@@ -149,4 +149,4 @@ class ASPOptimalReasoningService(OIPPReasoningService):
 
         # Parse the answer back into a Placement
         logger.log(LOG_LEVEL_NAME, "Intermediate solutions:", len(cb.intermediate_solutions))
-        return cb.best_known_placement
+        return cb.best_known_placement, None
