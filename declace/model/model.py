@@ -3,6 +3,11 @@ import math
 import typing
 from math import ceil
 
+from loguru import logger
+
+LOG_LEVEL_NAME = "FIXED_ARITHMETIC"
+logger.level(LOG_LEVEL_NAME, no=16, color="<blue>")
+
 PRECISION = 3
 
 
@@ -10,9 +15,9 @@ def fixed_precision(value, inf):
     if math.isinf(value):
         return inf
 
-    return int(math.ceil(value * 10**PRECISION))
-
-
+    r = int(math.ceil(value * 10**PRECISION))
+    logger.log(LOG_LEVEL_NAME, "Converting {} into {}[{}]".format(value, r, PRECISION))
+    return r
 @dataclasses.dataclass(frozen=True)
 class Node:
     id: int
