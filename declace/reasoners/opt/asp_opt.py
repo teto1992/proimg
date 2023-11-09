@@ -13,7 +13,10 @@ from declace.reasoners import OIPPReasoningService
 
 from loguru import logger
 
+LOG_LEVEL_NAME = "OPT_ASP"
+logger.level(LOG_LEVEL_NAME, no=15, color="<blue>")
 
+logger.level("@TERM", no=15, color="<blue>")
 class Messages:
     TRANSFER_TIME_COMPUTATION = (
         "Computing @-term: compute_transfer_time({},{},{}) = {} ~ {}"
@@ -34,7 +37,7 @@ class Context:
         )
         r_milliseconds = r_seconds * 10**self.precision
 
-        logger.debug(
+        logger.log("@TERM",
             Messages.TRANSFER_TIME_COMPUTATION.format(
                 size, bandwidth, latency, r_milliseconds, ceil(r_milliseconds)
             )
@@ -61,7 +64,7 @@ class SolutionCallback:
     def __call__(self, model):
         atoms = project_answer_set(model)
         prg = "\n".join("{}.".format(str(x)) for x in atoms)
-        logger.debug(
+        logger.log(LOG_LEVEL_NAME,
             Messages.INTERMEDIATE_SOLUTION.format(
                 model.cost, model.optimality_proven, prg
             )
@@ -69,7 +72,7 @@ class SolutionCallback:
 
         if not model.optimality_proven:
             exec_time = time.time() - self.init_time
-            logger.debug(f"Cost: {model.cost[0]} computed in: {exec_time:.3f} seconds")
+            logger.log(LOG_LEVEL_NAME, f"Cost: {model.cost[0]} computed in: {exec_time:.3f} seconds")
             self.intermediate_solutions.append((model.cost[0], exec_time))
             # self.current_time = time.time()
             self._placement = atoms
@@ -82,7 +85,7 @@ class SolutionCallback:
         self._cost = model.cost
         self._optimal = True
         exec_time = time.time() - self.init_time
-        logger.debug(f"OPTIMAL Cost[{self.precision}]: {model.cost[0]} computed in: {exec_time:.3f} seconds")
+        logger.log(LOG_LEVEL_NAME, f"OPTIMAL Cost[{self.precision}]: {model.cost[0]} computed in: {exec_time:.3f} seconds")
         self.intermediate_solutions.append((model.cost[0], exec_time))
         return False
 
@@ -120,17 +123,17 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         # Initialize a Clingo
         ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
         ctl.load((ASPOptimalReasoningService.SOURCE_FOLDER / 'encoding.lp').as_posix())  # encoding
-        logger.debug("Loaded ASP encoding")
+        logger.log(LOG_LEVEL_NAME, "Loaded ASP encoding")
 
         # Serialize problem into a set of facts
         ctl.add("base", [], problem.as_facts)
-        logger.debug("Loaded Problem-as-facts")
+        logger.log(LOG_LEVEL_NAME, "Loaded Problem-as-facts")
 
         # Grounding
         ground_start = time.time()
-        logger.debug("GROUNDING START")
+        logger.log(LOG_LEVEL_NAME, "GROUNDING START")
         ctl.ground([("base", [])], context=Context(self.precision))
-        logger.debug("GROUNDING TIME: {:.3f}s".format(time.time() - ground_start))
+        logger.log(LOG_LEVEL_NAME, "GROUNDING TIME: {:.3f}s".format(time.time() - ground_start))
 
         # Solving
         cb = SolutionCallback(precision=self.precision)
@@ -145,5 +148,5 @@ class ASPOptimalReasoningService(OIPPReasoningService):
                 raise RuntimeError("Something was wrong in the clingo call, timeout?")
 
         # Parse the answer back into a Placement
-        logger.debug("Intermediate solutions:", len(cb.intermediate_solutions))
+        logger.log(LOG_LEVEL_NAME, "Intermediate solutions:", len(cb.intermediate_solutions))
         return cb.best_known_placement

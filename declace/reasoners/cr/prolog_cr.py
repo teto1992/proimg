@@ -12,6 +12,10 @@ from declace.reasoners import CIPPReasoningService
 import swiplserver
 
 import tempfile
+from loguru import logger
+
+LOG_LEVEL_NAME = "CR_PROLOG"
+logger.level(LOG_LEVEL_NAME, no=15, color="<blue>")
 
 
 class PrologContinuousReasoningService(CIPPReasoningService):
