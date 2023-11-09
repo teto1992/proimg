@@ -1,4 +1,3 @@
-import logging
 import time
 from collections import defaultdict
 from math import ceil
@@ -12,6 +11,9 @@ from declace.model import Problem, Placement, Image
 from declace.reasoners import OIPPReasoningService
 
 
+from loguru import logger
+
+
 class Messages:
     TRANSFER_TIME_COMPUTATION = (
         "Computing @-term: compute_transfer_time({},{},{}) = {} ~ {}"
@@ -20,10 +22,9 @@ class Messages:
 
 
 class Context:
-    def __init__(self, debug, precision):
+    def __init__(self, precision):
         # TODO: Unità di misura, cifre aritmetica
         self.precision = precision
-        self.debug = debug
 
     def compute_transfer_time(self, size, bandwidth, latency):
         # latency.number / 1000 ms -> s
@@ -33,12 +34,11 @@ class Context:
         )
         r_milliseconds = r_seconds * 10**self.precision
 
-        if self.debug:
-            logging.debug(
-                Messages.TRANSFER_TIME_COMPUTATION.format(
-                    size, bandwidth, latency, r_milliseconds, ceil(r_milliseconds)
-                )
+        logger.debug(
+            Messages.TRANSFER_TIME_COMPUTATION.format(
+                size, bandwidth, latency, r_milliseconds, ceil(r_milliseconds)
             )
+        )
 
         return clingo.Number(int(ceil(r_milliseconds)))
 
@@ -48,12 +48,11 @@ def project_answer_set(model):
 
 
 class SolutionCallback:
-    def __init__(self, debug, precision):
+    def __init__(self, precision):
         self._placement = None
         self._cost = None
         self._optimal = False
 
-        self.debug = debug
         self.init_time = time.time()
         self.intermediate_solutions: List[Tuple[int, float]] = []
 
@@ -61,17 +60,16 @@ class SolutionCallback:
 
     def __call__(self, model):
         atoms = project_answer_set(model)
-        if self.debug:
-            prg = "\n".join("{}.".format(str(x)) for x in atoms)
-            logging.debug(
-                Messages.INTERMEDIATE_SOLUTION.format(
-                    model.cost, model.optimality_proven, prg
-                )
+        prg = "\n".join("{}.".format(str(x)) for x in atoms)
+        logger.debug(
+            Messages.INTERMEDIATE_SOLUTION.format(
+                model.cost, model.optimality_proven, prg
             )
+        )
 
         if not model.optimality_proven:
             exec_time = time.time() - self.init_time
-            print(f"Cost: {model.cost[0]} computed in: {exec_time:.3f} seconds")
+            logger.debug(f"Cost: {model.cost[0]} computed in: {exec_time:.3f} seconds")
             self.intermediate_solutions.append((model.cost[0], exec_time))
             # self.current_time = time.time()
             self._placement = atoms
@@ -84,7 +82,7 @@ class SolutionCallback:
         self._cost = model.cost
         self._optimal = True
         exec_time = time.time() - self.init_time
-        print(f"OPTIMAL Cost[{self.precision}]: {model.cost[0]} computed in: {exec_time:.3f} seconds")
+        logger.debug(f"OPTIMAL Cost[{self.precision}]: {model.cost[0]} computed in: {exec_time:.3f} seconds")
         self.intermediate_solutions.append((model.cost[0], exec_time))
         return False
 
@@ -112,32 +110,31 @@ class ASPOptimalReasoningService(OIPPReasoningService):
     def cleanup(self):
         pass
 
-    def __init__(self, debug, precision):
+    def __init__(self, precision):
         # cost_at_time[i] = (a, b) -> i-th candidate model has cost a, found at time b
         # TODO: Refactor into a Stats class
         self.cost_at_time: List[Tuple[int, float]] = []
         self.precision = precision
-        self.debug = debug
 
     def opt_solve(self, problem: Problem, timeout: int) -> Placement:
         # Initialize a Clingo
         ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
         ctl.load((ASPOptimalReasoningService.SOURCE_FOLDER / 'encoding.lp').as_posix())  # encoding
-        print("Loaded ASP encoding")
+        logger.debug("Loaded ASP encoding")
 
         # Serialize problem into a set of facts
         ctl.add("base", [], problem.as_facts)
-        print("Loaded Problem-as-facts")
+        logger.debug("Loaded Problem-as-facts")
 
         # Grounding
         ground_start = time.time()
-        print("GROUNDING START")
-        ctl.ground([("base", [])], context=Context(True, self.precision))
-        print("GROUNDING TIME: {:.3f}s".format(time.time() - ground_start))
+        logger.debug("GROUNDING START")
+        ctl.ground([("base", [])], context=Context(self.precision))
+        logger.debug("GROUNDING TIME: {:.3f}s".format(time.time() - ground_start))
 
         # Solving
-        cb = SolutionCallback(True, precision=self.precision)
-        with ctl.solve(async_=True, on_model=cb, on_core=lambda x: print("CORE", x), on_unsat=lambda x: print("UNSAT,", x)) as handle:
+        cb = SolutionCallback(precision=self.precision)
+        with ctl.solve(async_=True, on_model=cb) as handle:
             handle.wait(timeout)
             ans = handle.get()
 
@@ -148,5 +145,5 @@ class ASPOptimalReasoningService(OIPPReasoningService):
                 raise RuntimeError("Something was wrong in the clingo call, timeout?")
 
         # Parse the answer back into a Placement
-        print("Intermediate solutions:", len(cb.intermediate_solutions))
+        logger.debug("Intermediate solutions:", len(cb.intermediate_solutions))
         return cb.best_known_placement

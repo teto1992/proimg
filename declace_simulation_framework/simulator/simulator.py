@@ -11,6 +11,8 @@ from declace_simulation_framework.utils.network_utils import (
     snapshot_closure,
 )
 
+from loguru import logger
+
 
 class Simulator:
     def __init__(
@@ -20,19 +22,17 @@ class Simulator:
             shutdown_probability: float,
             cr_timeout: int,
             opt_timeout: int,
-            verbose=True,
     ):
         self.original_problem = problem
         self.saboteur = saboteur
         self.shutdown_probability = shutdown_probability
 
-        self.opt = ASPOptimalReasoningService(verbose, PRECISION)
-        self.cr = PrologContinuousReasoningService(verbose)
+        self.opt = ASPOptimalReasoningService(PRECISION)
+        self.cr = PrologContinuousReasoningService()
 
         self.cr_timeout = cr_timeout
         self.opt_timeout = opt_timeout
 
-        self.verbose = verbose
 
     def __cleanup__(self):
         self.cr.cleanup()
@@ -44,10 +44,10 @@ class Simulator:
         preprocessing_time = time.time()
         ########################## Solving OIPP for the first time on the instance
         pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, random_state)
-        print("Pruning network for first solving shot")
+        logger.debug("Pruning network for first solving shot")
 
         closure = snapshot_closure(pruned_network)
-        print("Computing network closure")
+        logger.debug("Computing network closure")
         net_preprocessing_time = time.time() - preprocessing_time
 
         current_problem = self.original_problem.change_underlying_network(closure)
@@ -60,8 +60,8 @@ class Simulator:
         self.cr.inject_placement(current_placement)
         ##########################################################
 
-        print("First shot: {:.3f}".format((time.time() - now) - net_preprocessing_time))
-        print("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
+        logger.debug("First shot: {:.3f}".format((time.time() - now) - net_preprocessing_time))
+        logger.debug("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
         now = time.time()
 
         current_step = 1
@@ -72,7 +72,7 @@ class Simulator:
             problem = self.saboteur.ruin(current_problem.change_underlying_network(current_network), random_state)
             current_network = snapshot_closure(problem.network)
             net_preprocessing_time = time.time() - preprocessing_time
-            print("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
+            logger.debug("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
             #################################################################################
 
             try:
@@ -80,20 +80,20 @@ class Simulator:
 
                 # CR works, cr_solve self-updates the Placement
                 current_placement, prolog_solving_time = self.cr.cr_solve(current_problem, self.cr_timeout)
-                print("CONTINUOUS REASONING OK, prolog solving time: {:.3f}s".format(prolog_solving_time))
+                logger.debug("CONTINUOUS REASONING OK, prolog solving time: {:.3f}s".format(prolog_solving_time))
 
             except UnsatisfiableContinuousReasoning:
                 # or timeout; name it better
-                print("CONTINUOUS REASONING FAIL")
+                logger.debug("CONTINUOUS REASONING FAIL")
 
                 try:
                     # try to compute a new one with ASP, and update
                     current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
                     self.cr.inject_placement(current_placement)
-                    print("OPTIMAL REASONING OK")
+                    logger.debug("OPTIMAL REASONING OK")
 
                 except UnsatisfiablePlacement:
-                    print("OPTIMAL REASONING FAIL")
+                    logger.debug("OPTIMAL REASONING FAIL")
                     self.__cleanup__()
                     sys.exit(0)
 
@@ -101,7 +101,7 @@ class Simulator:
             assert self.cr.can_perform_continuous_reasoning
 
             current_step += 1
-            print("Solving shot: {:.3f}, cost {}".format((time.time() - now) - net_preprocessing_time, current_placement.cost))
+            logger.debug("Solving shot: {:.3f}, cost {}".format((time.time() - now) - net_preprocessing_time, current_placement.cost))
 
             now = time.time()
 

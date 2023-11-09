@@ -4,6 +4,7 @@ from typing import Tuple, List, Optional
 from swiplserver import PrologMQI, PrologThread
 from dataclasses import dataclass
 
+from loguru import logger
 
 @dataclass(frozen=True)
 class PrologQuery:
@@ -53,11 +54,10 @@ class PrologDatafile:
 
 
 class PrologServer:
-    def __init__(self, *programs: Path, verbose=True):
+    def __init__(self, *programs: Path):
         self.mqi = PrologMQI()
         self.programs = programs
         self.thread: Optional[PrologThread] = None
-        self.verbose = verbose
 
     @property
     def alive(self):
@@ -65,15 +65,13 @@ class PrologServer:
 
     def __init_thread__(self):
         self.thread = self.mqi.create_thread()
-        if self.verbose:
-            print("[VERBOSE] Starting thread: {}".format(str(self.thread)))
+        logger.debug("Starting thread: {}".format(str(self.thread)))
 
     def __load_program__(self, p):
         # TODO: Nicer exceptions
         assert p.exists() and p.is_file()
         q = "['{}']".format(p.as_posix())
-        if self.verbose:
-            print("[VERBOSE] Loading a program, running query: {}".format(q))
+        logger.debug("[VERBOSE] Loading a program, running query: {}".format(q))
         self.thread.query(q)
 
     def __load_programs__(self):
@@ -86,8 +84,7 @@ class PrologServer:
         self.__load_programs__()
 
     def stop(self):
-        if self.verbose:
-            print("[VERBOSE] Stopping thread & quitting MQI")
+        logger.debug("[VERBOSE] Stopping thread & quitting MQI")
         self.thread.stop()
         self.mqi.stop()
 
@@ -105,8 +102,7 @@ class PrologServer:
         q = "loadFile('{}', {})".format(
             datafile.path.absolute(), datafile.retract_signature
         )
-        if self.verbose:
-            print("[VERBOSE] Loading a datafile, running query: {}".format(q))
+        logger.debug("[VERBOSE] Loading a datafile, running query: {}".format(q))
         self.thread.query(q)
 
     # def consult(self, filename: str, to_retract: str = None):
@@ -117,39 +113,12 @@ class PrologServer:
     # Returns the first result of the specified query within the specified timeout.
     def query(self, query: PrologQuery, timeout=60):
         q = "once({})".format(query.as_atom)
-        if self.verbose:
-            print(
-                "[VERBOSE] Querying for {}".format(query.as_atom),
-                "running query: {}".format(q),
-            )
+        logger.debug(
+            "[VERBOSE] Querying for {}".format(query.as_atom),
+            "running query: {}".format(q),
+        )
         result = self.thread.query(q, query_timeout_seconds=timeout)
 
-        if self.verbose:
-            print("[VERBOSE] Results for {}: {}".format(query.as_atom, result))
+        logger.debug("[VERBOSE] Results for {}: {}".format(query.as_atom, result))
 
         return result
-
-
-if __name__ == "__main__":
-    Node, Link, Image, MaxReplicas = PrologPredicate.from_strings(
-        "node/3", "link/4", "image/3", "maxReplicas/1"
-    )
-
-    Declace = PrologQuery.from_string("declace", "P,Cost,Time")
-
-    server = PrologServer(
-        Path("/home/antonio/declace/example_prolog_inputs/config.pl"),
-        Path("/home/antonio/declace/example_prolog_inputs/main.pl"),
-        verbose=True,
-    )
-
-    with server:
-        infrastructure = Path("/home/antonio/declace/example_prolog_inputs/infra.pl")
-        images = Path("/home/antonio/declace/example_prolog_inputs/images.pl")
-
-        server.load_datafile(
-            PrologDatafile(infrastructure, retractions=[Node, Link, MaxReplicas])
-        )
-        server.load_datafile(PrologDatafile(images, retractions=[Image]))
-
-        ans = server.query(Declace, 5)

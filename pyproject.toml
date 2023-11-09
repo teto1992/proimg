@@ -28,7 +28,8 @@ dependencies = [
   "pyswip",
   "networkx", 
   "numpy",
-  "swiplserver"
+  "swiplserver",
+  "loguru"
 ]
 
 [project.urls]

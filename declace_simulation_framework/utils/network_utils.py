@@ -8,6 +8,7 @@ from numpy.random import RandomState
 import itertools
 from declace.model import *
 
+from loguru import logger
 
 def prune_network(
     network: NetworkSnapshot, shut_down_probability: float, random_state: RandomState
@@ -78,7 +79,7 @@ def snapshot_closure(network: NetworkSnapshot) -> NetworkSnapshot:
 
     closure_computation_end = time.time()
 
-    print("Closure computation: {:.3f}s".format(closure_computation_end - closure_computation_start))
+    logger.debug("Closure computation: {:.3f}s".format(closure_computation_end - closure_computation_start))
 
     links.extend(network.links)
     return NetworkSnapshot(

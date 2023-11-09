@@ -47,10 +47,9 @@ if __name__ == '__main__':
     simulator = Simulator(
         original_problem,
         saboteur,
-        0.25,
+        0.15,
         2,
         60,
-        verbose=True
     )
 
     simulator.simulate(100, r)
