@@ -145,4 +145,4 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         computed_placement = self._ans_to_obj(query_result, problem.images)
         self.current_placement = computed_placement
 
-        return computed_placement, query_result["Time"]
+        return computed_placement, {'time': query_result["Time"]}

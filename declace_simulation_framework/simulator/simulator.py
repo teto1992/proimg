@@ -56,8 +56,10 @@ class Simulator:
         net_preprocessing_time = time.time() - preprocessing_time
 
         current_problem = self.original_problem.change_underlying_network(closure)
-        current_placement, _ = self.opt.opt_solve(current_problem, self.opt_timeout)
+        current_placement, stats = self.opt.opt_solve(current_problem, self.opt_timeout)
         ##########################################################################
+
+        print("OPT step {:.3f}s".format(stats['time']))
 
         ############################# Inject starting CR solution
         # First optimal solution with ASP; inject into CR module
@@ -104,15 +106,17 @@ class Simulator:
                 current_problem = problem.change_underlying_network(current_network)
 
                 # CR works, cr_solve self-updates the Placement
-                current_placement, prolog_solving_time = self.cr.cr_solve(
+                current_placement, stats = self.cr.cr_solve(
                     current_problem, self.cr_timeout
                 )
                 logger.log(
                     LOG_LEVEL_NAME,
                     "CONTINUOUS REASONING OK, prolog solving time: {:.3f}s".format(
-                        prolog_solving_time
+                        stats['time']
                     ),
                 )
+
+                print("CR step: {:.3f}s".format(stats['time']))
 
             except UnsatisfiableContinuousReasoning:
                 # or timeout; name it better
@@ -120,11 +124,12 @@ class Simulator:
 
                 try:
                     # try to compute a new one with ASP, and update
-                    current_placement, _ = self.opt.opt_solve(
+                    current_placement, stats = self.opt.opt_solve(
                         current_problem, self.opt_timeout
                     )
                     self.cr.inject_placement(current_placement)
                     logger.log(LOG_LEVEL_NAME, "OPTIMAL REASONING OK")
+                    print("OPT step: {:.3f}s".format(stats['time']))
 
                 except UnsatisfiablePlacement:
                     logger.log(LOG_LEVEL_NAME, "OPTIMAL REASONING FAIL")

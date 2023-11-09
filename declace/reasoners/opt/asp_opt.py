@@ -2,7 +2,7 @@ import time
 from collections import defaultdict
 from math import ceil
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Any, Dict
 
 import clingo
 
@@ -129,7 +129,7 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         self.cost_at_time: List[Tuple[int, float]] = []
         self.precision = precision
 
-    def opt_solve(self, problem: Problem, timeout: int) -> tuple[Placement, None]:
+    def opt_solve(self, problem: Problem, timeout: int) -> tuple[Placement, Dict[str, Any]]:
         # Initialize a Clingo
         ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
         ctl.load(
@@ -151,6 +151,7 @@ class ASPOptimalReasoningService(OIPPReasoningService):
 
         # Solving
         cb = SolutionCallback(precision=self.precision)
+        stats = None
         with ctl.solve(async_=True, on_model=cb) as handle:
             handle.wait(timeout)
             ans = handle.get()
@@ -165,4 +166,5 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         logger.log(
             LOG_LEVEL_NAME, "Intermediate solutions:", len(cb.intermediate_solutions)
         )
-        return cb.best_known_placement, None
+
+        return cb.best_known_placement, {'time': ctl.statistics['summary']['times']['total']}
