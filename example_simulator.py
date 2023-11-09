@@ -12,15 +12,20 @@ from declace_simulation_framework.simulator.saboteurs import NullSaboteur
 from loguru import logger
 import loguru
 
+
+def show_level(record):
+    print("MESSAGE_LEVEL: ", record['level'].name)
+    print(record)
+    return True
+
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
         logging_level = sys.argv[1]
+        levels = logging_level.split(',')
         logger.remove()
-        for log_level in logging_level.split(','):
-            print("Adding log level:", log_level)
-            logger.add(sys.stderr, level=log_level)
-
+        logger.add(sys.stderr, filter=lambda record: record['level'].name in levels)
 
     r = RandomState(1)
 
