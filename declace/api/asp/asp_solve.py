@@ -1,16 +1,16 @@
 import sys
 import pathlib
 import logging
-import json
 import time
 import clingo
-import argparse
 from collections import defaultdict
 from math import ceil
 
-from declace.model import Placement, Image, Problem
+from declace.model import Placement, Image
 
 ENCODING = (pathlib.Path(__file__).parent / "encoding.lp").as_posix()
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def write(string, target):
@@ -29,7 +29,6 @@ class Messages:
 
 class Context:
     def __init__(self, debug=False, precision=None):
-        # TODO: Unità di misura, cifre aritmetica
         self.precision = precision
         self.debug = debug
 
@@ -113,140 +112,3 @@ class SolutionCallback:
             image_on_nodes[node].append(image)
 
         return Placement(self._cost, image_on_nodes)
-
-    @property
-    def as_json(self):
-        image_to_nodes = defaultdict(lambda: [])
-        if self._placement is None:
-            # Never met a model, unsat
-            return json.dumps({"satisfiable": False}, indent=2)
-
-        for symbol in self._placement:
-            img = symbol.arguments[0].name
-            node = symbol.arguments[1].name
-            image_to_nodes[img].append(node)
-
-        return json.dumps(
-            {
-                "satisfiable": True,
-                "cost": self._cost,
-                "placement": [
-                    {"image": image, "nodes": nodes}
-                    for image, nodes in image_to_nodes.items()
-                ],
-            },
-            indent=2,
-        )
-
-
-def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument(
-        "infrastructure", type=str, help="File describing network architecture."
-    )
-    p.add_argument("images", type=str, help="File with images to be placed.")
-    p.add_argument("-d", "--debug", action="store_true")
-    p.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        default=None,
-        help="Save optimal solution to file as a JSON.",
-    )
-    args = p.parse_args()
-
-    return args
-
-
-def solve_optimal_from_files(infrastructure, images, debug=True, timeout=60):
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
-
-    ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
-    ctl.load(ENCODING)
-    ctl.load(infrastructure)
-    ctl.load(images)
-
-    ctl.ground([("base", [])], context=Context())
-
-    init_time = time.time()
-    s = SolutionCallback(debug)
-    # ans = ctl.solve(on_model=s, async_=True)
-
-    # https://github.com/potassco/clingo/issues/151
-    with ctl.solve(on_model=s, async_=True) as handle:
-        handle.wait(timeout)
-        handle.cancel()
-        ans = handle.get()
-
-    print(f"Computation time: {(time.time() - init_time):.3f}s", ans.satisfiable)
-
-    return s.best_known_placement if ans.satisfiable else None, ans
-
-
-def solve_optimal(problem: Problem, debug=True, timeout=60):
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
-
-    ctl = clingo.Control(["--models=1", "--opt-mode=optN"])
-    ctl.load(ENCODING)
-    ctl.add("base", [], problem.as_facts)
-
-    ctl.ground([("base", [])], context=Context())
-
-    init_time = time.time()
-    s = SolutionCallback(debug)
-    # ans = ctl.solve(on_model=s, async_=True)
-
-    # https://github.com/potassco/clingo/issues/151
-    with ctl.solve(on_model=s, async_=True) as handle:
-        handle.wait(timeout)
-        handle.cancel()
-        ans = handle.get()
-
-    print(f"Computation time: {(time.time() - init_time):.3f}s", ans.satisfiable)
-
-    return s.best_known_placement if ans.satisfiable else None, ans
-
-
-if __name__ == "__main__":
-    args = parse_args()
-    best_known, ans = solve_optimal_from_files(
-        args.infrastructure, args.images, args.debug
-    )
-
-    print(best_known, ans)
-
-if __name__ == "__main__damiano_intermediate_stats":
-    args = parse_args()
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
-
-    ctl = clingo.Control(["--models=1", "--opt-mode=optN"])
-
-    ctl.load(ENCODING)
-    ctl.load(args.infrastructure)
-    ctl.load(args.images)
-
-    ctl.ground([("base", [])], context=Context(args.debug))
-
-    init_time = time.time()
-    s = SolutionCallback(args.debug)
-    ans = ctl.solve(on_model=s)
-    print(f"Computation time: {time.time() - init_time} s")
-
-    if len(s.intermediate_solutions) > 2:
-        total_time = s.intermediate_solutions[-1][1] - s.intermediate_solutions[0][1]
-
-        for i in range(0, len(s.intermediate_solutions)):
-            perc_value = (
-                (s.intermediate_solutions[i][0] - s.intermediate_solutions[-1][0]) * 100
-            ) / (s.intermediate_solutions[0][0] - s.intermediate_solutions[-1][0])
-            perc_sec = (
-                (s.intermediate_solutions[i][1] - s.intermediate_solutions[0][1]) * 100
-            ) / (s.intermediate_solutions[-1][1] - s.intermediate_solutions[0][1])
-            print(
-                f"value {s.intermediate_solutions[i][0]} ({100 - perc_value} %) in {s.intermediate_solutions[i][1]} ({perc_sec} %)"
-            )
-
-    write(s.as_json, args.output)
