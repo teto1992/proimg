@@ -7,13 +7,14 @@ from declace_simulation_framework.generator.attribute import UniformDiscrete, Mu
 from declace_simulation_framework.generator import LinkGenerator, NodeGenerator, NetworkGenerator
 from declace_simulation_framework.simulator import Simulator, InstanceSaboteur, NodeStorageWobble, \
     LinkTiedLatencyBandwidthWobble, ImageSizeWobble
+from declace_simulation_framework.simulator.saboteurs import NullSaboteur
 
 if __name__ == '__main__':
     r = RandomState(1)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=500, m=3, k=3),
-        #ErdosRenyi(n=100, p=0.05),
+        TruncatedBarabasiAlbert(n=150, m=3, k=5),
+        #BarabasiAlbert(n=150, m=3),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(64000, 128000, 256000, 512000), 0.2),
@@ -33,6 +34,8 @@ if __name__ == '__main__':
         ImageSizeWobble(UniformContinuous(-0.10, 0.10))
     )
 
+    # saboteur = NullSaboteur(None, None, None)
+
     images = [
         Image("alpine", 8, 30.0),
         Image("ubuntu", 69, 60.0),
@@ -44,9 +47,9 @@ if __name__ == '__main__':
     simulator = Simulator(
         original_problem,
         saboteur,
-        0.12,
+        0.25,
         2,
-        5,
+        60,
         verbose=True
     )
 

@@ -20,7 +20,7 @@ class Messages:
 
 
 class Context:
-    def __init__(self, debug=False, precision=3):
+    def __init__(self, debug, precision):
         # TODO: Unità di misura, cifre aritmetica
         self.precision = precision
         self.debug = debug
@@ -48,7 +48,7 @@ def project_answer_set(model):
 
 
 class SolutionCallback:
-    def __init__(self, debug=True):
+    def __init__(self, debug, precision):
         self._placement = None
         self._cost = None
         self._optimal = False
@@ -56,6 +56,8 @@ class SolutionCallback:
         self.debug = debug
         self.init_time = time.time()
         self.intermediate_solutions: List[Tuple[int, float]] = []
+
+        self.precision = precision
 
     def __call__(self, model):
         atoms = project_answer_set(model)
@@ -82,7 +84,7 @@ class SolutionCallback:
         self._cost = model.cost
         self._optimal = True
         exec_time = time.time() - self.init_time
-        print(f"OPTIMAL Cost: {model.cost[0]} computed in: {exec_time:.3f} seconds")
+        print(f"OPTIMAL Cost[{self.precision}]: {model.cost[0]} computed in: {exec_time:.3f} seconds")
         self.intermediate_solutions.append((model.cost[0], exec_time))
         return False
 
@@ -101,7 +103,7 @@ class SolutionCallback:
 
             image_on_nodes[node].append(image)
 
-        return Placement(self._cost[0] / (10**3), image_on_nodes)
+        return Placement(self._cost[0], image_on_nodes)
 
 
 class ASPOptimalReasoningService(OIPPReasoningService):
@@ -110,14 +112,16 @@ class ASPOptimalReasoningService(OIPPReasoningService):
     def cleanup(self):
         pass
 
-    def __init__(self):
+    def __init__(self, debug, precision):
         # cost_at_time[i] = (a, b) -> i-th candidate model has cost a, found at time b
         # TODO: Refactor into a Stats class
         self.cost_at_time: List[Tuple[int, float]] = []
+        self.precision = precision
+        self.debug = debug
 
     def opt_solve(self, problem: Problem, timeout: int) -> Placement:
         # Initialize a Clingo
-        ctl = clingo.Control(["--models=0", "--opt-mode=opt"])
+        ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
         ctl.load((ASPOptimalReasoningService.SOURCE_FOLDER / 'encoding.lp').as_posix())  # encoding
         print("Loaded ASP encoding")
 
@@ -128,11 +132,11 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         # Grounding
         ground_start = time.time()
         print("GROUNDING START")
-        ctl.ground([("base", [])], context=Context(debug=True))
+        ctl.ground([("base", [])], context=Context(True, self.precision))
         print("GROUNDING TIME: {:.3f}s".format(time.time() - ground_start))
 
         # Solving
-        cb = SolutionCallback(True)
+        cb = SolutionCallback(True, precision=self.precision)
         with ctl.solve(async_=True, on_model=cb, on_core=lambda x: print("CORE", x), on_unsat=lambda x: print("UNSAT,", x)) as handle:
             handle.wait(timeout)
             ans = handle.get()

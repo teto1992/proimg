@@ -3,6 +3,7 @@ from .saboteur_interfaces import (
     ImageSaboteur,
     NodeSaboteur,
     InstanceSaboteur,
+    NullSaboteur
 )
 from .image_saboteur import ImageSizeWobble
 from .node_saboteur import NodeStorageWobble

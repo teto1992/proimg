@@ -1,1 +1,1 @@
-from .exceptions import UnsatisfiablePlacement, UnsatisfiableContinuousReasoning
+from .exceptions import UnsatisfiablePlacement, UnsatisfiableContinuousReasoning, NoStartingPlacementForContinuousReasoning

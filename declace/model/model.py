@@ -3,12 +3,14 @@ import math
 import typing
 from math import ceil
 
+PRECISION = 3
 
-def fixed_precision(value, precision, inf):
+
+def fixed_precision(value, inf):
     if math.isinf(value):
         return inf
 
-    return int(math.ceil(value * 10**precision))
+    return int(math.ceil(value * 10**PRECISION))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -18,7 +20,7 @@ class Node:
     cost: float
 
     @property
-    def atom(self, precision=3):
+    def atom(self):
         return "node(n{},{},{})".format(self.id, self.storage, self.cost)
 
 
@@ -30,12 +32,12 @@ class Link:
     bandwidth: float
 
     @property
-    def atom(self, precision=3):
+    def atom(self):
         return "link(n{}, n{}, {}, {})".format(
             self.source,
             self.target,
-            fixed_precision(self.latency, precision, inf=9999),
-            fixed_precision(self.bandwidth, precision, inf=1),
+            fixed_precision(self.latency, inf=9999),
+            fixed_precision(self.bandwidth, inf=1),
         )
 
 
@@ -46,9 +48,9 @@ class Image:
     max_transfer_time: float
 
     @property
-    def atom(self, precision=3):
+    def atom(self):
         return "image({}, {}, {})".format(
-            self.id, self.size, fixed_precision(self.max_transfer_time, precision, None)
+            self.id, self.size, fixed_precision(self.max_transfer_time, None)
         )
 
 

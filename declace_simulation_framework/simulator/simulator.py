@@ -2,7 +2,7 @@ import sys
 import time
 
 from declace.exceptions import UnsatisfiableContinuousReasoning, UnsatisfiablePlacement
-from declace.model import Problem
+from declace.model import Problem, PRECISION
 from declace.reasoners.cr.prolog_cr import PrologContinuousReasoningService
 from declace.reasoners.opt.asp_opt import ASPOptimalReasoningService
 from declace_simulation_framework.simulator.saboteurs import InstanceSaboteur
@@ -20,13 +20,13 @@ class Simulator:
             shutdown_probability: float,
             cr_timeout: int,
             opt_timeout: int,
-            verbose=True
+            verbose=True,
     ):
         self.original_problem = problem
         self.saboteur = saboteur
         self.shutdown_probability = shutdown_probability
 
-        self.opt = ASPOptimalReasoningService()
+        self.opt = ASPOptimalReasoningService(verbose, PRECISION)
         self.cr = PrologContinuousReasoningService(verbose)
 
         self.cr_timeout = cr_timeout
@@ -42,10 +42,8 @@ class Simulator:
         now = time.time()
 
         preprocessing_time = time.time()
-        # Solving OIPP
-        pruned_network = prune_network(
-            self.original_problem.network, self.shutdown_probability, random_state
-        )
+        ########################## Solving OIPP for the first time on the instance
+        pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, random_state)
         print("Pruning network for first solving shot")
 
         closure = snapshot_closure(pruned_network)
@@ -54,9 +52,13 @@ class Simulator:
 
         current_problem = self.original_problem.change_underlying_network(closure)
         current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
+        ##########################################################################
 
+
+        ############################# Inject starting CR solution
         # First optimal solution with ASP; inject into CR module
-        self.cr.update_placement(current_placement)
+        self.cr.inject_placement(current_placement)
+        ##########################################################
 
         print("First shot: {:.3f}".format((time.time() - now) - net_preprocessing_time))
         print("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
@@ -64,17 +66,14 @@ class Simulator:
 
         current_step = 1
         while current_step < n:
-            # Apply saboteurs + Network closure
+            ################################### Apply saboteurs + Network closure
             preprocessing_time = time.time()
-            current_network = prune_network(
-                self.original_problem.network, self.shutdown_probability, random_state
-            )
-            problem = self.saboteur.ruin(
-                current_problem.change_underlying_network(current_network), random_state
-            )
+            current_network = prune_network(self.original_problem.network, self.shutdown_probability, random_state)
+            problem = self.saboteur.ruin(current_problem.change_underlying_network(current_network), random_state)
             current_network = snapshot_closure(problem.network)
             net_preprocessing_time = time.time() - preprocessing_time
             print("Network preprocessing time (routing): {:.3f}s".format(net_preprocessing_time))
+            #################################################################################
 
             try:
                 current_problem = problem.change_underlying_network(current_network)
@@ -90,7 +89,7 @@ class Simulator:
                 try:
                     # try to compute a new one with ASP, and update
                     current_placement = self.opt.opt_solve(current_problem, self.opt_timeout)
-                    self.cr.update_placement(current_placement)
+                    self.cr.inject_placement(current_placement)
                     print("OPTIMAL REASONING OK")
 
                 except UnsatisfiablePlacement:
@@ -98,8 +97,8 @@ class Simulator:
                     self.__cleanup__()
                     sys.exit(0)
 
-            # double check we have a valid placement for the next iteration
-            assert self.cr.placement is not None
+            # If I arrive here, I want to be sure that next round I can peform CR
+            assert self.cr.can_perform_continuous_reasoning
 
             current_step += 1
             print("Solving shot: {:.3f}, cost {}".format((time.time() - now) - net_preprocessing_time, current_placement.cost))

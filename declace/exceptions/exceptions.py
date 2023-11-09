@@ -6,6 +6,13 @@ class UnsatisfiableContinuousReasoning(BaseException):
     pass
 
 
+class SWIPLTimeout(BaseException):
+    pass
+
+
+class NoStartingPlacementForContinuousReasoning(BaseException):
+    pass
+
 class TimeoutContinuousReasoning(BaseException):
     pass
 

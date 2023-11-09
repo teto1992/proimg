@@ -5,23 +5,47 @@ from declace.model import Problem, Placement
 
 
 class CIPPReasoningService(ABC):
-    def __init__(self, start_placement: Optional[Placement]):
-        self.previous_placement = start_placement
+    """
+    Interface for functionalities of continuous reasoning.
+    """
+    def __init__(self):
+        self.current_placement = None
 
-    def update_placement(self, placement: Placement):
-        print("UPDATING PREVIOUS CR PLACEMENT")
-        self.previous_placement = placement
-
-    def invalidate_placement(self):
-        print("INVALIDATING PREVIOUS CR PLACEMENT")
-        self.previous_placement = None
+    @property
+    def can_perform_continuous_reasoning(self):
+        """
+        Returns `true` if a step of continuous reasoning can be performed, `false` otherwise.
+        """
+        return self.current_placement is not None
 
     @property
     def placement(self):
-        return self.previous_placement
+        """
+        Returns the current known placement to the CR service. Should be updated whenever a new placement is found by CR.
+        """
+        return self.current_placement
+
+    @abstractmethod
+    def inject_placement(self, placement: Placement):
+        """
+        Bootstraps the CR implementation with an initial placement.
+        """
+
+        assert not self. can_perform_continuous_reasoning
+        self.current_placement = placement
+
+    def invalidate_placement(self):
+        """
+        Invalidates the known placement. Subsequent calls to `can_perform_continuous_reasoning` should fail, unless a seed placement has been injected.
+        """
+
+        self.current_placement = None
 
     @abstractmethod
     def cr_solve(self, problem: Problem, timeout: int) -> Placement:
+        """
+        Solves the PP problem in a continuous reasoning fashion.
+        """
         pass
 
 
