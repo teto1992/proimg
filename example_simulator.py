@@ -9,7 +9,19 @@ from declace_simulation_framework.simulator import Simulator, InstanceSaboteur, 
     LinkTiedLatencyBandwidthWobble, ImageSizeWobble
 from declace_simulation_framework.simulator.saboteurs import NullSaboteur
 
+from loguru import logger
+import loguru
+
 if __name__ == '__main__':
+    import sys
+    if len(sys.argv) >= 2:
+        logging_level = sys.argv[1]
+        logger.remove()
+        for log_level in logging_level.split(','):
+            print("Adding log level:", log_level)
+            logger.add(sys.stderr, level=log_level)
+
+
     r = RandomState(1)
 
     g = NetworkGenerator(
