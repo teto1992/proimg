@@ -5,3 +5,4 @@ from .saboteurs import (
     LinkTiedLatencyBandwidthWobble,
 )
 from .simulator import Simulator
+from .paper_experiment_simulator import PaperBenchmarkSimulator

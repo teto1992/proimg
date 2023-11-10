@@ -22,7 +22,7 @@ from declace_simulation_framework.simulator import (
     InstanceSaboteur,
     NodeStorageWobble,
     LinkTiedLatencyBandwidthWobble,
-    ImageSizeWobble,
+    ImageSizeWobble, PaperBenchmarkSimulator,
 )
 from declace_simulation_framework.simulator.saboteurs import NullSaboteur
 from declace.utils import enable_logging_channels
@@ -37,6 +37,9 @@ def show_level(record):
     return True
 
 
+# sys argv ci sono: seed, num nodi, m
+# {infra=$seed,nodes=$nodi,m=$m}.csv
+
 if __name__ == "__main__":
     import sys
 
@@ -46,8 +49,8 @@ if __name__ == "__main__":
     r = RandomState(1)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=150, m=3, k=5),
-        # BarabasiAlbert(n=150, m=3),
+        # TruncatedBarabasiAlbert(n=1000, m=3, k=5),
+        BarabasiAlbert(n=100, m=3),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(64000, 128000, 256000, 512000), 0.2),
@@ -67,7 +70,7 @@ if __name__ == "__main__":
         ImageSizeWobble(UniformContinuous(-0.10, 0.10)),
     )
 
-    # saboteur = NullSaboteur(None, None, None)
+    saboteur = NullSaboteur(None, None, None)
 
     images = [
         Image("alpine", 8, 30.0),
@@ -77,7 +80,7 @@ if __name__ == "__main__":
 
     original_problem = Problem(images, g.generate(r), max_replicas=10)
 
-    simulator = Simulator(
+    simulator = PaperBenchmarkSimulator(
         original_problem,
         saboteur,
         0.15,

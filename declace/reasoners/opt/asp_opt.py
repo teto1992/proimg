@@ -31,13 +31,16 @@ class Context:
         # TODO: Unità di misura, cifre aritmetica
         self.precision = precision
 
+                                  # MB,    Mb/s [1000],     ms
     def compute_transfer_time(self, size, bandwidth, latency):
+        bandwidth = bandwidth.number / 1000
+
         # latency.number / 1000 ms -> s
         r_seconds = (
-            float(size.number) * float(8.0) / float(bandwidth.number)
-            + float(latency.number) / 10**self.precision
+            float(size.number) * 8.0 / float(bandwidth)
+            + float(latency.number) / 1000
         )
-        r_milliseconds = r_seconds * 10**self.precision
+        r_milliseconds = r_seconds * 1000
 
         logger.log(
             "@TERM",

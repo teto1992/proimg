@@ -14,7 +14,7 @@ transfer_time(Img, Src, Src, 0) :- placement(Img,Src).
 transfer_time(Img, Src, Dst, @compute_transfer_time(S,B,L)) :- placement(Img,Src), image(Img, S, _), link(Src, Dst, L, B).
 
 % There exists a node X such that Img is deployed on X and X can transfer to Dst within thresholds
-transfer_ok(Img,Dst)     :- transfer_time(Img, X, Dst,T), image(Img,_,MaxTransferTime), T <= MaxTransferTime.
+transfer_ok(Img,Dst)     :- transfer_time(Img, X, Dst,T), image(Img,_,MaxTransferTime), T <= (MaxTransferTime * 1000).
 :- image(Img,_,_), node(Dst, _, _), not transfer_ok(Img, Dst).
 
 % Storage threshold

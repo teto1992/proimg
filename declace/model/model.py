@@ -10,6 +10,10 @@ logger.level(LOG_LEVEL_NAME, no=16, color="<blue>")
 
 PRECISION = 3
 
+"""
+truncate(X,N,Result):- X >= 0, Result is floor(10^N*X)/10^N, !.
+"""
+
 
 def fixed_precision(value, inf):
     if math.isinf(value):
@@ -24,7 +28,7 @@ def fixed_precision(value, inf):
 class Node:
     id: int
     storage: int
-    cost: float
+    cost: int
 
     @property
     def atom(self):
@@ -35,16 +39,16 @@ class Node:
 class Link:
     source: int
     target: int
-    latency: float
-    bandwidth: float
+    latency: int # millisecondi di latenza del link
+    bandwidth: float # Mb/s
 
     @property
     def atom(self):
         return "link(n{}, n{}, {}, {})".format(
             self.source,
             self.target,
-            fixed_precision(self.latency, inf=9999),
-            fixed_precision(self.bandwidth, inf=1),
+            self.latency, # MILLISECONDI IN PRECISIONE FISSA
+            int(self.bandwidth * 1000),
         )
 
 
@@ -52,12 +56,12 @@ class Link:
 class Image:
     id: str
     size: int
-    max_transfer_time: float
+    max_transfer_time: int #secondi
 
     @property
     def atom(self):
         return "image({}, {}, {})".format(
-            self.id, self.size, fixed_precision(self.max_transfer_time, None)
+            self.id, self.size, int(self.max_transfer_time)
         )
 
 
