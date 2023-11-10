@@ -14,5 +14,5 @@ class LinkTiedLatencyBandwidthWobble(LinkSaboteur):
     def ruin(self, link: Link, state: RandomState) -> Link:
         d = self.delta.generate(state)
         return Link(
-            link.source, link.target, (1 + d) * link.latency, (1 - d) * link.bandwidth
+            link.source, link.target, int((1 + d) * link.latency), int((1 - d) * link.bandwidth)
         )

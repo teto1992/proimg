@@ -15,5 +15,5 @@ class ImageSizeWobble(ImageSaboteur):
         return Image(
             image.id,
             int((1 + self.delta.generate(state)) * image.size),
-            image.max_transfer_time,
+            int(image.max_transfer_time),
         )

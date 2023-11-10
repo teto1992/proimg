@@ -15,15 +15,6 @@ truncate(X,N,Result):- X >= 0, Result is floor(10^N*X)/10^N, !.
 """
 
 
-def fixed_precision(value, inf):
-    if math.isinf(value):
-        return inf
-
-    r = int(math.ceil(value * 10**PRECISION))
-    logger.log(LOG_LEVEL_NAME, "Converting {} into {}[{}]".format(value, r, PRECISION))
-    return r
-
-
 @dataclasses.dataclass(frozen=True)
 class Node:
     id: int

@@ -63,7 +63,7 @@ placement([], _, _, POk, POk, Cost) :-
 /* Calls imagePlacement/5 while increasing the number of maximum allowed replicas from M to Max */
 iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
     M =< MaxR, 
-    imagePlacement(Images, Nodes, PartialPlacement, Placement, M), !.
+    imagePlacement(Images, Nodes, PartialPlacement, Placement, M).
 iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
     M =< MaxR, NewM is M+1,
     iterativeDeepening(Images, Nodes, PartialPlacement, Placement, NewM, MaxR).
@@ -76,7 +76,7 @@ imagePlacement([],_,Placement,Placement,_).
 
 /* Places at most M replicas of I onto Nodes, until transferTimesOk/3 holds */
 replicaPlacement(I, Nodes, Placement, Placement, _) :- 
-    transferTimesOk(I, Nodes, Placement), !.
+    transferTimesOk(I, Nodes, Placement).
 replicaPlacement(I, Nodes, PPlacement, NewPPlacement, R) :-
     % \+ transferTimesOk(I, Nodes, PPlacement),
     R > 0, NewR is R - 1,
@@ -89,7 +89,7 @@ transferTimesOk(I, [N|Ns], P) :-
     dif(P,[]), member(at(I,M),P),
     image(I,_,MaxR), 
     transferTime(I,M,N,T),
-    T =< MaxR * 1000, !, % one source is enough
+    T =< MaxR * 1000, % one source is enough
     transferTimesOk(I, Ns, P).
 transferTimesOk(_, [], _).
 

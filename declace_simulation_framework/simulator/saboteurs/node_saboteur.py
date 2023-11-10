@@ -10,5 +10,5 @@ class NodeStorageWobble(NodeSaboteur):
 
     def ruin(self, node: Node, state: RandomState) -> Node:
         return Node(
-            node.id, int((1 + self.delta.generate(state)) * node.storage), node.cost
+            node.id, int((1 + self.delta.generate(state)) * node.storage), int(node.cost)
         )

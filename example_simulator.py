@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     g = NetworkGenerator(
         # TruncatedBarabasiAlbert(n=1000, m=3, k=5),
-        BarabasiAlbert(n=100, m=3),
+        BarabasiAlbert(n=10, m=3),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(64000, 128000, 256000, 512000), 0.2),
@@ -73,9 +73,9 @@ if __name__ == "__main__":
     saboteur = NullSaboteur(None, None, None)
 
     images = [
-        Image("alpine", 8, 30.0),
-        Image("ubuntu", 69, 60.0),
-        Image("nginx", 192, 120.0),
+        Image("alpine", 8, 30),
+        Image("ubuntu", 69, 60),
+        Image("nginx", 192, 120),
     ]
 
     original_problem = Problem(images, g.generate(r), max_replicas=10)

@@ -62,7 +62,7 @@ class PaperBenchmarkSimulator:
         pass
 
     def ruin(self, random_state: RandomState):
-        pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, random_state)
+        pruned_network = self.original_problem.network #prune_network(self.original_problem.network, self.shutdown_probability, random_state)
         closure = snapshot_closure(pruned_network)
         current_problem = self.original_problem.change_underlying_network(closure)
         return current_problem
