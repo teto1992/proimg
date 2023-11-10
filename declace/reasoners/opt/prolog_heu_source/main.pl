@@ -21,10 +21,9 @@ networkNodes(Nodes) :-
 /* Iterative deepening */
 placement([I|Mages], Nodes, MaxR, PartialPlacement, Placement, Cost) :-
     iterativeDeepening([I|Mages], Nodes, PartialPlacement, Placement, 1, MaxR), 
-    cost(Placement, Cost),
-    allocatedStorage(Placement,Alloc).
+    cost(Placement, Cost).
 placement([], _, _, POk, POk, Cost) :-
-    cost(POk, Cost), allocatedStorage(POk,Alloc).
+    cost(POk, Cost). %, allocatedStorage(POk,Alloc).
 
 /* Calls imagePlacement/5 while increasing the number of maximum allowed replicas from M to Max */
 iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
