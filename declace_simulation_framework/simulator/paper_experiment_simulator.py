@@ -62,7 +62,7 @@ class PaperBenchmarkSimulator:
         pass
 
     def ruin(self, random_state: RandomState):
-        pruned_network = self.original_problem.network #prune_network(self.original_problem.network, self.shutdown_probability, random_state)
+        pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, random_state) #self.original_problem.network #
         closure = snapshot_closure(pruned_network)
         current_problem = self.original_problem.change_underlying_network(closure)
         return current_problem
@@ -133,13 +133,13 @@ class PaperBenchmarkSimulator:
             
             if placement.cost < asp_placement.cost:
                 print(f"Cost error: ASP: {asp_placement.cost}, prolog heu: {placement.cost}")
-                print("asp_placement: ")
-                print(asp_placement)
-                print("heu")
-                print(placement)
-                print("instance")
+            #     print("asp_placement: ")
+            #     print(asp_placement)
+            #     print("heu")
+            #     print(placement)
+            #     print("instance")
                 print(problem.as_facts)
-                return -1, -1, -1
+            #     return -1, -1, -1
             
             mask = "GREPME EPOCH {} [time:cost]: {:.3f}s:{} {:.3f}s:{}"
 

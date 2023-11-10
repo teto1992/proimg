@@ -63,22 +63,22 @@ placement([], _, _, POk, POk, Cost) :-
 /* Calls imagePlacement/5 while increasing the number of maximum allowed replicas from M to Max */
 iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
     M =< MaxR, 
-    imagePlacement(Images, Nodes, PartialPlacement, Placement, M).
+    imagePlacement(Images, Nodes, PartialPlacement, Placement, M), !. 
 iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
     M =< MaxR, NewM is M+1,
     iterativeDeepening(Images, Nodes, PartialPlacement, Placement, NewM, MaxR).
-
+    
 /* Places Images one by one */
 imagePlacement([I|Is], Nodes, PPlacement, Placement, R) :-
-    replicaPlacement(I, Nodes, PPlacement, TmpPPlacement, R),
+    replicaPlacement(I, Nodes, PPlacement, TmpPPlacement, R), 
     imagePlacement(Is, Nodes, TmpPPlacement, Placement, R).
 imagePlacement([],_,Placement,Placement,_).
 
 /* Places at most M replicas of I onto Nodes, until transferTimesOk/3 holds */
-replicaPlacement(I, Nodes, Placement, Placement, _) :-
+replicaPlacement(I, Nodes, Placement, Placement, _) :- 
     transferTimesOk(I, Nodes, Placement).
 replicaPlacement(I, Nodes, PPlacement, NewPPlacement, R) :-
-    % \+ transferTimesOk(I, Nodes, PPlacement),
+    \+ transferTimesOk(I, Nodes, PPlacement), 
     R > 0, NewR is R - 1,
     image(I, Size, _), member(N, Nodes),
     \+ member(at(I,N), PPlacement),
@@ -87,34 +87,28 @@ replicaPlacement(I, Nodes, PPlacement, NewPPlacement, R) :-
 
 transferTimesOk(I, [N|Ns], P) :-
     dif(P,[]), member(at(I,M),P),
-    image(I,_,MaxR),
+    image(I,_,MaxR), 
     transferTime(I,M,N,T),
-    T =< MaxR * 1000, % one source is enough
+    T < MaxR, !, % one source is enough
     transferTimesOk(I, Ns, P).
 transferTimesOk(_, [], _).
 
-        %r_seconds = (
-        %    float(size.number) * 8.0 / float(bandwidth)
-        %    + float(latency.number) / 1000
-        %)
-        % r_milliseconds = r_seconds * 1000
 transferTime(Image, Src, Dest, T) :-
     dif(Src, Dest), node(Src, _, _), node(Dest, _, _),
     image(Image, Size, _),
     link(Src, Dest, Latency, Bandwidth),
-    T is ceil((Size * 8 / Bandwidth + Latency / 1000) * 1000).
-
+    T is Size * 8 / Bandwidth + Latency / 1000.
 transferTime(_, N, N, 0).
 
 storageOk(I, Size, Placement, Alloc) :-
-    findall(N, member(at(I,N), Placement), Nodes),
+    findall(N, member(at(I,N), Placement), Nodes), 
     checkStorage(I, Size, Nodes, Placement, Alloc).
 
 checkStorage(I, Size, [N|Ns], Placement, Alloc) :-
     storageOk(Placement, N, Size), checkStorage(I, Size, Ns, Placement, Alloc).
-checkStorage(_, _, [], _, _).
+checkStorage(_, _, [], _, _). 
 
-storageOk(Placement, N, Size) :-
+storageOk(Placement, N, Size) :- 
     (placedImages(_, Alloc, _) ; (Alloc = [])),
     node(N, Storage, _),
     findall(S, member((N,S), Alloc), OldAllocs), sumlist(OldAllocs, OldAlloc),
@@ -135,7 +129,7 @@ storePlacement(Placement, Alloc, Cost) :-
 loadFile(Filename, ToRetract) :-
     open(Filename, read, Str),
 	maplist(retractall,ToRetract),
-    readAndAssert(Str).
+    readAndAssert(Str). 
 
 readAndAssert(Str) :-
     read(Str, X), (X == end_of_file -> close(Str) ; assert(X), readAndAssert(Str)).
@@ -146,5 +140,3 @@ loadASPPlacement() :-
     findall(at(I,N), at(I,N), Placement),
     allocatedStorage(Placement, Alloc), cost(Placement, Cost),
     (retractall(at(_,_)); true), storePlacement(Placement, Alloc, Cost).
-
-

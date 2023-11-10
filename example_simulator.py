@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     g = NetworkGenerator(
         # TruncatedBarabasiAlbert(n=1000, m=3, k=5),
-        BarabasiAlbert(n=10, m=3),
+        BarabasiAlbert(n=100, m=3),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(64000, 128000, 256000, 512000), 0.2),
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         ImageSizeWobble(UniformContinuous(-0.10, 0.10)),
     )
 
-    saboteur = NullSaboteur(None, None, None)
+    #saboteur = NullSaboteur(None, None, None)
 
     images = [
         Image("alpine", 8, 30),

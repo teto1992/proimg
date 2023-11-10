@@ -8,4 +8,3 @@
 :- dynamic(node/3).
 :- dynamic(link/4).
 :- dynamic(maxReplicas/1).
-:- table transferTime/4.
