@@ -130,7 +130,17 @@ class PaperBenchmarkSimulator:
             )
             print("EPOCH {} PROLOG HEU SOLVING ELAPSED {:.3f}s:{}".format(step, stopwatch.stop(), placement.cost))
             print("=" * 10, placement, "=" * 10)
-
+            
+            if placement.cost < asp_placement.cost:
+                print(f"Cost error: ASP: {asp_placement.cost}, prolog heu: {placement.cost}")
+                print("asp_placement: ")
+                print(asp_placement)
+                print("heu")
+                print(placement)
+                print("instance")
+                print(problem.as_facts)
+                return -1, -1, -1
+            
             mask = "GREPME EPOCH {} [time:cost]: {:.3f}s:{} {:.3f}s:{}"
 
             print(mask.format(
