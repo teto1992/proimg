@@ -58,9 +58,8 @@ class PaperBenchmarkSimulator:
         self.opt_timeout = opt_timeout
 
     def __cleanup__(self):
-        # ...
-        pass
-
+        self.prolog_scratch.cleanup()
+        self.prolog_cr.cleanup()
     def ruin(self, random_state: RandomState):
         pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, random_state) #self.original_problem.network #
         closure = snapshot_closure(pruned_network)
