@@ -59,6 +59,7 @@ class PaperBenchmarkSimulator:
         self.opt_timeout = opt_timeout
 
         self.random_state = random_state
+
     def __cleanup__(self):
         self.prolog_scratch.cleanup()
         self.prolog_cr.cleanup()
@@ -70,86 +71,28 @@ class PaperBenchmarkSimulator:
         return current_problem
 
     def simulate(self, n):
-        stopwatch = Stopwatch()
-        ASP_SCRATCH_TIMES: List[Tuple[float, int]] = []
-        PROLOG_SCRATCH_TIMES: List[Tuple[float, int]] = []
-        DECLACE_TIMES: List[Tuple[float, int]] = []
-
-        ##### FIRST SOLVING SHOT
-
-        stopwatch.start()
         problem = self.ruin()
-        print("EPOCH 0 RUINING INFRASTRUCTURE ELAPSED {:.3f}s".format(stopwatch.stop()))
-
-        stopwatch.start()
         placement, stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
-        print("EPOCH 0 ASP OPT SOLVING ELAPSED {:.3f}s".format(stopwatch.stop()))
-
-        print("="*10, placement, "="*10)
-
-        ASP_SCRATCH_TIMES.append(
-            (float(stats['time']), int(placement.cost))
-        )
-
-        DECLACE_TIMES.append(
-            (float(stats['time']), int(placement.cost))
-        )
         self.prolog_cr.inject_placement(placement)
 
-        stopwatch.start()
         placement, stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
-        PROLOG_SCRATCH_TIMES.append(
-            (float(stats['time']), int(placement.cost))
-        )
-        print("EPOCH 0 PROLOG HEU SOLVING ELAPSED {:.3f}s".format(stopwatch.stop()))
-        print("="*10, placement, "="*10)
-
-
-        #####
 
         for step in range(1, n):
-            # ho scassato la rete
-            stopwatch.start()
             problem = self.ruin()
-            print("EPOCH {} INFRASTRUCTURE RUIN ELAPSED {:.3f}s".format(step, stopwatch.stop()))
 
-            # prendo il tempo con ASP ottimo
-            stopwatch.start()
             asp_placement, asp_stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
-            ASP_SCRATCH_TIMES.append(
-                (float(stats['time']), int(asp_placement.cost))
-            )
-            print("EPOCH {} ASP OPT SOLVING ELAPSED {:.3f}s:{}".format(step, stopwatch.stop(), asp_placement.cost))
-            print("=" * 10, asp_placement, "=" * 10)
 
             self.prolog_scratch.prolog_server.thread.query("retractall(placedImages(_,_,_))")
-
-            # prendo il tempo con prolog heuristico
-            stopwatch.start()
             placement, stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
-            PROLOG_SCRATCH_TIMES.append(
-                (float(stats['time']), int(placement.cost))
-            )
-            print("EPOCH {} PROLOG HEU SOLVING ELAPSED {:.3f}s:{}".format(step, stopwatch.stop(), placement.cost))
-            print("=" * 10, placement, "=" * 10)
-            
-            if placement.cost < asp_placement.cost:
-                print(f"Cost error: ASP: {asp_placement.cost}, prolog heu: {placement.cost}")
+
+            # if placement.cost < asp_placement.cost:
+            #    print(f"Cost error: ASP: {asp_placement.cost}, prolog heu: {placement.cost}")
             #     print("asp_placement: ")
             #     print(asp_placement)
             #     print("heu")
             #     print(placement)
             #     print("instance")
-                print(problem.as_facts)
+            #     print(problem.as_facts)
             #     return -1, -1, -1
             
-            mask = "GREPME EPOCH {} [time:cost]: {:.3f}s:{} {:.3f}s:{}"
-
-            print(mask.format(
-                step, *ASP_SCRATCH_TIMES[-1], *PROLOG_SCRATCH_TIMES[-1])
-            )
-
-        # oppure un csv
-        # <nome_simulazione>.csv
-        # step,asp_opt_time,asp_opt_cost,prolog_heu_time,prolog_heu_cost,declace_time,declace_cost
-        return ASP_SCRATCH_TIMES, PROLOG_SCRATCH_TIMES, DECLACE_TIMES
+        self.__cleanup__()
