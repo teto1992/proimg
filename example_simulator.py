@@ -77,6 +77,18 @@ if __name__ == "__main__":
         Image("alpine", 8, 30),
         Image("ubuntu", 69, 60),
         Image("nginx", 192, 120),
+        Image("python", 1020, 90),
+        Image("busybox", 4, 30),
+        Image("redis", 149, 60),
+        Image("postgres", 438, 90),
+        Image("httpd", 195, 60),
+        Image("node", 1100, 90),
+        Image("mongo", 712, 30),
+        Image("mysql", 621, 60),
+        Image("memcached", 126, 30),
+        Image("traefik", 148, 50),
+        Image("mariadb", 387, 120),
+        Image("rabbitmq", 201, 100),
     ]
 
     original_problem = Problem(images, g.generate(r), max_replicas=10)
