@@ -108,6 +108,14 @@ class Placement:
                 prg.append("at({}, {}).".format(image.id, node_id))
         return "\n".join(prg)
 
+    @property
+    def as_pairs(self):
+        pairs = []
+        for node_id, images in self.placement.items():
+            for image in images:
+                pairs.append((image.id, node_id))
+        return ','.join("({},{})".format(*p) for p in pairs)
+
 
 @dataclasses.dataclass(frozen=True)
 class Problem:
