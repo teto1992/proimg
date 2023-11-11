@@ -24,17 +24,30 @@ logger.level(LOG_LEVEL_NAME, no=15, color="<blue>")
 
 
 class Stopwatch:
+    class Trigger:
+        def __init__(self, stopwatch, tag):
+            self.tag = tag
+            self.stopwatch = stopwatch
+
+        def __enter__(self):
+            self.start = time.time()
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self.stop = time.time()
+            self.stopwatch.data[self.tag] = self.stop - self.start
+
     def __init__(self):
-        self.elapsed = None
+        self.data = {}
 
-    def start(self):
-        assert self.elapsed is None
-        self.elapsed = time.time()
+    def trigger(self, tag):
+        return Stopwatch.Trigger(self, tag)
 
-    def stop(self):
-        val = time.time() - self.elapsed
-        self.elapsed = None
-        return val
+    def get(self, tag):
+        return self.data[tag]
+
+    def clear(self):
+        self.data = {}
+
 
 class PaperBenchmarkSimulator:
     def __init__(
@@ -71,20 +84,33 @@ class PaperBenchmarkSimulator:
         return current_problem
 
     def simulate(self, n):
+        stopwatch = Stopwatch()
+
         problem = self.ruin()
-        asp_placement, asp_stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
+
+        with stopwatch.trigger('asp'):
+            asp_placement, asp_stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
         self.prolog_cr.inject_placement(asp_placement)
 
-        heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
+        with stopwatch.trigger('heu'):
+            heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
+
+        print(stopwatch.data)
 
         for step in range(1, n):
             problem = self.ruin()
+            stopwatch.clear()
 
-            asp_placement, asp_stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
+            with stopwatch.trigger('asp'):
+                asp_placement, asp_stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
 
-            self.prolog_scratch.prolog_server.thread.query("retractall(placedImages(_,_,_))")
-            heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
+            with stopwatch.trigger('heu'):
+                self.prolog_scratch.prolog_server.thread.query("retractall(placedImages(_,_,_))")
+                heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
 
-            cr_placement, cr_stats = self.prolog_cr.cr_solve(problem, self.cr_timeout)
-            
+            with stopwatch.trigger('cr'):
+                cr_placement, cr_stats = self.prolog_cr.cr_solve(problem, self.cr_timeout)
+
+            print(stopwatch.data)
+
         self.__cleanup__()
