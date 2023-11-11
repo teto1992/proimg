@@ -44,6 +44,7 @@ class PaperBenchmarkSimulator:
         shutdown_probability: float,
         cr_timeout: int,
         opt_timeout: int,
+        random_state: RandomState
     ):
 
         self.original_problem = problem
@@ -57,16 +58,18 @@ class PaperBenchmarkSimulator:
         self.cr_timeout = cr_timeout
         self.opt_timeout = opt_timeout
 
+        self.random_state = random_state
     def __cleanup__(self):
         self.prolog_scratch.cleanup()
         self.prolog_cr.cleanup()
-    def ruin(self, random_state: RandomState):
-        pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, random_state) #self.original_problem.network #
+
+    def ruin(self):
+        pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, self.random_state)
         closure = snapshot_closure(pruned_network)
         current_problem = self.original_problem.change_underlying_network(closure)
         return current_problem
 
-    def simulate(self, n, random_state):
+    def simulate(self, n):
         stopwatch = Stopwatch()
         ASP_SCRATCH_TIMES: List[Tuple[float, int]] = []
         PROLOG_SCRATCH_TIMES: List[Tuple[float, int]] = []
@@ -75,7 +78,7 @@ class PaperBenchmarkSimulator:
         ##### FIRST SOLVING SHOT
 
         stopwatch.start()
-        problem = self.ruin(random_state)
+        problem = self.ruin()
         print("EPOCH 0 RUINING INFRASTRUCTURE ELAPSED {:.3f}s".format(stopwatch.stop()))
 
         stopwatch.start()
@@ -107,7 +110,7 @@ class PaperBenchmarkSimulator:
         for step in range(1, n):
             # ho scassato la rete
             stopwatch.start()
-            problem = self.ruin(random_state)
+            problem = self.ruin()
             print("EPOCH {} INFRASTRUCTURE RUIN ELAPSED {:.3f}s".format(step, stopwatch.stop()))
 
             # prendo il tempo con ASP ottimo

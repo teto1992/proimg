@@ -86,6 +86,7 @@ if __name__ == "__main__":
         0.15,
         2,
         60,
+        r
     )
 
-    simulator.simulate(100, r)
+    simulator.simulate(100)
