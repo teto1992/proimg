@@ -72,10 +72,10 @@ class PaperBenchmarkSimulator:
 
     def simulate(self, n):
         problem = self.ruin()
-        placement, stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
-        self.prolog_cr.inject_placement(placement)
+        asp_placement, asp_stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
+        self.prolog_cr.inject_placement(asp_placement)
 
-        placement, stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
+        heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
 
         for step in range(1, n):
             problem = self.ruin()
@@ -83,16 +83,8 @@ class PaperBenchmarkSimulator:
             asp_placement, asp_stats = self.asp_scratch.opt_solve(problem, self.opt_timeout)
 
             self.prolog_scratch.prolog_server.thread.query("retractall(placedImages(_,_,_))")
-            placement, stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
+            heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
 
-            # if placement.cost < asp_placement.cost:
-            #    print(f"Cost error: ASP: {asp_placement.cost}, prolog heu: {placement.cost}")
-            #     print("asp_placement: ")
-            #     print(asp_placement)
-            #     print("heu")
-            #     print(placement)
-            #     print("instance")
-            #     print(problem.as_facts)
-            #     return -1, -1, -1
+            cr_placement, cr_stats = self.prolog_cr.cr_solve(problem, self.cr_timeout)
             
         self.__cleanup__()
