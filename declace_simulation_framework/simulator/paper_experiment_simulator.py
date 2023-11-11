@@ -144,6 +144,8 @@ class PaperBenchmarkSimulator:
                 else:
                     row['cr_time'] = stopwatch.get('cr') + stopwatch.get('asp')
                     row['cr_cost'] = row['asp_cost']
+                    cr_placement = asp_placement
+                    self.prolog_cr.inject_placement(asp_placement)
 
             try:
                 with stopwatch.trigger('heu'):
