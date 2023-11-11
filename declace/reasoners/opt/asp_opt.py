@@ -42,8 +42,8 @@ class Context:
         # )
         # r_milliseconds = r_seconds * 1000
         
-        r_milliseconds = (float(size.number) * float(8.0) / float(bandwidth.number))*1000 + float(latency.number)
-
+        # r_milliseconds = (float(size.number) * float(8.0) / float(bandwidth.number))*1000 + float(latency.number)
+        r_milliseconds = float(size.number) * float(8.0) / float(bandwidth.number) + float(latency.number)
         logger.log(
             "@TERM",
             Messages.TRANSFER_TIME_COMPUTATION.format(
