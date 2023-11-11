@@ -44,6 +44,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) != 3:
         print("Usage: {} [log file] [seed]".format(__file__))
+        sys.exit(1)
 
     outputfile, seed = sys.argv[1:]
 
