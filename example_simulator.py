@@ -1,5 +1,6 @@
 import sys
 from numpy.random import RandomState
+from argparse import ArgumentParser
 
 from declace.model import Image, Problem
 from declace_simulation_framework.generator.topology import (
@@ -37,20 +38,20 @@ def show_level(record):
     return True
 
 
-# sys argv ci sono: seed, num nodi, m
-# {infra=$seed,nodes=$nodi,m=$m}.csv
-
 if __name__ == "__main__":
     import sys
+    enable_logging_channels(["DISABLE_LOGGING"])
 
-    if len(sys.argv) >= 2:
-        enable_logging_channels(sys.argv[1].split(","))
+    if len(sys.argv) != 3:
+        print("Usage: {} [log file] [seed]".format(__file__))
 
-    r = RandomState(1)
+    outputfile, seed = sys.argv[1:]
+
+    r = RandomState(seed)
 
     g = NetworkGenerator(
         # TruncatedBarabasiAlbert(n=1000, m=3, k=5),
-        BarabasiAlbert(n=100, m=3),
+        BarabasiAlbert(n=250, m=3),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(64000, 128000, 256000, 512000), 0.2),
@@ -70,8 +71,6 @@ if __name__ == "__main__":
         ImageSizeWobble(UniformContinuous(-0.10, 0.10)),
     )
 
-    #saboteur = NullSaboteur(None, None, None)
-
     images = [
         Image("alpine", 8, 30),
         Image("ubuntu", 69, 60),
@@ -86,7 +85,8 @@ if __name__ == "__main__":
         0.15,
         2,
         60,
-        r
+        r,
+        outputfile
     )
 
     simulator.simulate(100)
