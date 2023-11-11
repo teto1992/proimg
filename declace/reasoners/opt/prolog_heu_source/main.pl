@@ -62,7 +62,7 @@ transferTime(Image, Src, Dest, T) :-
     dif(Src, Dest), node(Src, _, _), node(Dest, _, _),
     image(Image, Size, _),
     link(Src, Dest, Latency, Bandwidth),
-    T is Size * 8 / Bandwidth + Latency / 1000.
+    T is (Size * 8 / Bandwidth)*1000 + Latency.
 transferTime(_, N, N, 0).
 
 storageOk(I, Size, Placement, Alloc) :-
