@@ -71,19 +71,22 @@ class PaperBenchmarkSimulator:
         writer = csv.DictWriter(
             log_file,
             delimiter=',',
-            quoting=csv.QUOTE_ALL,
+            quoting=csv.QUOTE_MINIMAL,
             quotechar="\"",
             fieldnames=(
                 'step',
                 'asp_time',
-                'asp_cost',
                 'heu_time',
-                'heu_cost',
                 'cr_time',
+                'declace_time',
+                'asp_cost',
+                'heu_cost',
                 'cr_cost',
+                'declace_cost',
                 'asp_placement',
                 'heu_placement',
-                'cr_placement'
+                'cr_placement',
+                'declace_placement'
             )
         )
         writer.writeheader()
@@ -113,11 +116,14 @@ class PaperBenchmarkSimulator:
             'asp_cost': asp_placement.cost,
             'heu_time': stopwatch.get('heu'),
             'heu_cost': heu_placement.cost,
-            'cr_time': stopwatch.get('asp'),
-            'cr_cost': asp_placement.cost,
+            'cr_time': -1,  # first time CR is not done
+            'cr_cost': -1,  # first time CR is not done
             'asp_placement': asp_placement.as_pairs if asp_placement is not None else None,
             'heu_placement': heu_placement.as_pairs if heu_placement is not None else None,
-            'cr_placement': asp_placement.as_pairs if asp_placement is not None else None,
+            'cr_placement': None, # first time CR is not done
+            'declace_time': stopwatch.get('asp'),
+            'declace_cost': asp_placement.cost,
+            'declace_placement': asp_placement.as_pairs if asp_placement is not None else None
         })
         log_file.flush()
 
@@ -125,6 +131,7 @@ class PaperBenchmarkSimulator:
             asp_placement, asp_cost = None, -1
             heu_placement, heu_cost = None, -1
             cr_placement, cr_cost = None, -1
+            declace_placement, declace_cost = None, -1
 
             problem = self.ruin()
             stopwatch.clear()
@@ -144,17 +151,25 @@ class PaperBenchmarkSimulator:
                     cr_placement, cr_stats = self.prolog_cr.cr_solve(problem, self.cr_timeout)
                 row['cr_cost'] = cr_placement.cost
                 row['cr_time'] = stopwatch.get('cr')
+                row['declace_cost'] = cr_placement.cost
+                row['declace_time'] = stopwatch.get('cr')
+                declace_placement = cr_placement
             except:
                 if asp_placement is None:
-                    row['cr_time'] = stopwatch.get('cr') + stopwatch.get('asp')
+                    row['cr_time'] = stopwatch.get('cr')
                     row['cr_cost'] = -1
                     cr_placement = None
+                    row['declace_time'] = stopwatch.get('cr') + stopwatch.get('asp')
+                    row['declace_cost'] = -1
+                    declace_placement = None
                 else:
-                    row['cr_time'] = stopwatch.get('cr') + stopwatch.get('asp')
+                    row['cr_time'] = stopwatch.get('cr')
                     row['cr_cost'] = row['asp_cost']
                     cr_placement = asp_placement
                     self.prolog_cr.inject_placement(asp_placement)
-
+                    row['declace_time'] = stopwatch.get('cr') + stopwatch.get('asp')
+                    row['declace_cost'] = row['asp_cost']
+                    declace_placement = asp_placement
             try:
                 with stopwatch.trigger('heu'):
                     #self.prolog_scratch.prolog_server.thread.query("retractall(placedImages(_,_,_))") # SF: I think this is not needed
@@ -168,6 +183,7 @@ class PaperBenchmarkSimulator:
             row['asp_placement'] = asp_placement.as_pairs if asp_placement is not None else None
             row['heu_placement'] = heu_placement.as_pairs if heu_placement is not None else None
             row['cr_placement'] = cr_placement.as_pairs if cr_placement is not None else None
+            row['declace_placement'] = cr_placement.as_pairs if cr_placement is not None else None
 
             writer.writerow(row)
             log_file.flush()
