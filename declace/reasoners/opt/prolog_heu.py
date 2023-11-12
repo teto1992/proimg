@@ -84,7 +84,7 @@ class PrologHeuristicReasoningService(OIPPReasoningService):
         # Query PrologServer for declare(P,Cost,Time)
         try:
             query_result = self.prolog_server.query(
-                PrologQuery.from_string("placement", "Placement,Cost,Time"), timeout=timeout
+                PrologQuery.from_string("placement", "Placement,Cost"), timeout=timeout
             )
 
             if not query_result:
@@ -104,4 +104,4 @@ class PrologHeuristicReasoningService(OIPPReasoningService):
         # Parse result into a placement object
         computed_placement = self._ans_to_obj(query_result, problem.images)
 
-        return computed_placement, {'time': query_result["Time"]}
+        return computed_placement, {} #{'time': query_result["Time"]}

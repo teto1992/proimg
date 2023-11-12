@@ -149,7 +149,7 @@ class PaperBenchmarkSimulator:
 
             try:
                 with stopwatch.trigger('heu'):
-                    self.prolog_scratch.prolog_server.thread.query("retractall(placedImages(_,_,_))")
+                    #self.prolog_scratch.prolog_server.thread.query("retractall(placedImages(_,_,_))") # SF: I think this is not needed
                     heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
                 row['heu_cost'] = heu_placement.cost
             except:
@@ -165,10 +165,11 @@ class PaperBenchmarkSimulator:
             log_file.flush()
 
             if asp_placement is None:
-                print("Stop! Unsatisfiable.")
-                log_file.close()
-                self.__cleanup__()
-                sys.exit(0)
+                problem = self.ruin()
+                # print("Stop! Unsatisfiable.")
+                # log_file.close()
+                # self.__cleanup__()
+                # sys.exit(0)
 
         log_file.close()
         self.__cleanup__()

@@ -1,18 +1,9 @@
 :- consult('config.pl').
 
 
-declace(Placement, Cost, Time) :-
+declace(Placement, Cost) :-
     imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
-    statistics(cputime, Start),
-    once(crPlacement(Images, Nodes, MaxR, Placement, Cost)),
-    statistics(cputime, End),
-    Time is End - Start.
-
-placement(Placement, Cost, Time) :-
-    imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
-    statistics(cputime, Start),
-    placement(Images, Nodes, MaxR, [], Placement, Cost),
-    statistics(cputime, End), Time is End - Start.
+    crPlacement(Images, Nodes, MaxR, Placement, Cost).
 
 % Sorts images by size in descending order
 imagesToPlace(Images) :-
@@ -30,8 +21,7 @@ networkNodes(Nodes) :-
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), 
     crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
-    placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost),
-    writeln('managed to cr! :-D'), writeln(Placement), writeln(OkPlacement), writeln(NewPlacement).
+    placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
 % crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 
 %     placement(Images, Nodes, MaxR, [], InitialPlacement, Cost).
 
@@ -137,9 +127,11 @@ readAndAssert(Str) :-
     read(Str, X), (X == end_of_file -> close(Str) ; assert(X), readAndAssert(Str)).
 
 % Load ASP placement
+% exploits temporarily loaded at/2 facts, computes allocatedStorage/2 and cost/2, then stores the result
+% retracts temporary at/2 facts and previous placedImages/3 fact
 loadASP() :- once(loadASPPlacement()).
 loadASPPlacement() :-
     findall(at(I,N), at(I,N), Placement),
-    write('Placement:'), writeln(Placement),
+    write('asserting new ASP placement: '), writeln(Placement),
     allocatedStorage(Placement, Alloc), cost(Placement, Cost),
     (retractall(at(_,_)); true), storePlacement(Placement, Alloc, Cost).

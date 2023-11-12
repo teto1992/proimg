@@ -1,10 +1,8 @@
 :- consult('config.pl').
 
-placement(Placement, Cost, Time) :-
+placement(Placement, Cost) :-
     imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
-    statistics(cputime, Start),
-    placement(Images, Nodes, MaxR, [], Placement, Cost),
-    statistics(cputime, End), Time is End - Start.
+    placement(Images, Nodes, MaxR, [], Placement, Cost).
 
 % Sorts images by size in descending order
 imagesToPlace(Images) :-

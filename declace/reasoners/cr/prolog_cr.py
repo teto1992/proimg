@@ -60,8 +60,10 @@ class PrologContinuousReasoningService(CIPPReasoningService):
 
         self.prolog_server.load_datafile(data)
 
+        # BUG: was deleting previously asserted placement at/2 and placedImages/3
         # Rename to load infrastructure?
-        self.prolog_server.query(PrologQuery.from_string("loadASP", ""))
+        # self.prolog_server.query(PrologQuery.from_string("loadASP", "")) 
+    
 
         self.last_ = None
 
@@ -98,7 +100,8 @@ class PrologContinuousReasoningService(CIPPReasoningService):
 
         data = PrologDatafile(
             path=Path(self.scratch_directory.name, FILENAME),
-            retractions=PrologPredicate.from_strings("at/2", "placedImages/3"),
+            #retractions=PrologPredicate.from_strings("", "")
+            retractions=PrologPredicate.from_strings("at/2", "placedImages/3"), # SF: yes, it is redundant
         )
 
         self.prolog_server.load_datafile(data)
@@ -121,7 +124,7 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         # Query PrologServer for declare(P,Cost,Time)
         try:
             query_result = self.prolog_server.query(
-                PrologQuery.from_string("declace", "P,Cost,Time"), timeout=timeout
+                PrologQuery.from_string("declace", "P,Cost"), timeout=timeout
             )
 
             if not query_result:
@@ -145,4 +148,4 @@ class PrologContinuousReasoningService(CIPPReasoningService):
         computed_placement = self._ans_to_obj(query_result, problem.images)
         self.current_placement = computed_placement
 
-        return computed_placement, {'time': query_result["Time"]}
+        return computed_placement, {} #{'time': query_result["Time"]}

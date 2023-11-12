@@ -54,18 +54,19 @@ if __name__ == "__main__":
 
     g = NetworkGenerator(
         #TruncatedBarabasiAlbert(n=200, m=3, k=5),
-        BarabasiAlbert(n=100, m=3),
+        ErdosRenyi(n=500, p=0.05),
+        #BarabasiAlbert(n=500, m=3),
         #RandomInternet(n=100),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(4096, 8092), 0.2),
-                (UniformDiscrete(512, 1024, 2048), 0.8),
+                (UniformDiscrete(16384, 32000, 64000), 0.2),
+                (UniformDiscrete(2048, 4096, 8192), 0.8),
             ),
-            cost=UniformDiscrete(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+            cost=UniformDiscrete(1, 2, 3, 4, 5, 6, 7),
         ),
         LinkGenerator(
-            latency=UniformDiscrete(*list(range(1, 21))),
-            bandwidth=UniformDiscrete(*list(range(5, 500))),
+            latency=UniformDiscrete(*list(range(1, 16))),
+            bandwidth=UniformDiscrete(*list(range(5, 251))),
         ),
     )
 
@@ -78,12 +79,12 @@ if __name__ == "__main__":
     images = [
         Image("alpine", 8, 30),
         Image("ubuntu", 69, 60),
-        Image("nginx", 192, 120),
-        #Image("python", 1020, 90),
-        # Image("busybox", 4, 30),
-        # Image("redis", 149, 60),
-        Image("postgres", 438, 90),
-        # Image("httpd", 195, 60),
+        Image("nginx", 192, 60),
+        #Image("python", 1020, 120),
+        Image("busybox", 4, 30),
+        Image("redis", 149, 60),
+        #Image("postgres", 438, 60),
+        #Image("httpd", 195, 60),
         # Image("node", 1100, 90),
         # Image("mongo", 712, 30),
         # Image("mysql", 621, 60),
@@ -99,7 +100,7 @@ if __name__ == "__main__":
         original_problem,
         saboteur,
         0.15,
-        2,
+        10,
         60,
         r,
         outputfile
