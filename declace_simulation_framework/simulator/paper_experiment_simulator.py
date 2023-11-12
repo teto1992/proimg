@@ -63,6 +63,10 @@ class PaperBenchmarkSimulator:
         return current_problem
 
     def simulate(self, n):
+        asp_placement, asp_cost = None, -1
+        heu_placement, heu_cost = None, -1
+        cr_placement, cr_cost = None, -1
+
         log_file = Path(self.output_filename).open('w')
         writer = csv.DictWriter(
             log_file,
@@ -118,6 +122,10 @@ class PaperBenchmarkSimulator:
         log_file.flush()
 
         for step in range(1, n):
+            asp_placement, asp_cost = None, -1
+            heu_placement, heu_cost = None, -1
+            cr_placement, cr_cost = None, -1
+
             problem = self.ruin()
             stopwatch.clear()
             row = {'step': step}
