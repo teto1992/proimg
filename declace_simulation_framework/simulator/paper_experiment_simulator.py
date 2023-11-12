@@ -113,16 +113,16 @@ class PaperBenchmarkSimulator:
         writer.writerow({
             'step': 0,
             'asp_time': stopwatch.get('asp'),
-            'asp_cost': asp_placement.cost,
+            'asp_cost': asp_placement.cost if asp_placement is not None else -1,
             'heu_time': stopwatch.get('heu'),
-            'heu_cost': heu_placement.cost,
+            'heu_cost': heu_placement.cost if heu_placement is not None else -1,
             'cr_time': -1,  # first time CR is not done
             'cr_cost': -1,  # first time CR is not done
             'asp_placement': asp_placement.as_pairs if asp_placement is not None else None,
             'heu_placement': heu_placement.as_pairs if heu_placement is not None else None,
             'cr_placement': None, # first time CR is not done
             'declace_time': stopwatch.get('asp'),
-            'declace_cost': asp_placement.cost,
+            'declace_cost': asp_placement.cost if asp_placement is not None else -1,
             'declace_placement': asp_placement.as_pairs if asp_placement is not None else None
         })
         log_file.flush()
@@ -190,10 +190,6 @@ class PaperBenchmarkSimulator:
 
             if asp_placement is None:
                 problem = self.ruin()
-                # print("Stop! Unsatisfiable.")
-                # log_file.close()
-                # self.__cleanup__()
-                # sys.exit(0)
 
         log_file.close()
         self.__cleanup__()

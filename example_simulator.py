@@ -53,13 +53,13 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=50, m=3, k=5),
-        #ErdosRenyi(n=500, p=0.05),
-        #BarabasiAlbert(n=100, m=3),
+        #TruncatedBarabasiAlbert(n=50, m=3, k=5),
+        # ErdosRenyi(n=50, p=0.05),
+        BarabasiAlbert(n=100, m=3),
         #RandomInternet(n=1000),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(16000, 32000, 64000, 128000), 0.2),
+                (UniformDiscrete(16000, 32000), 0.2),
                 (UniformDiscrete(2000, 4000, 8000), 0.8),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5, 6, 7),
@@ -81,8 +81,8 @@ if __name__ == "__main__":
         Image("ubuntu", 69, 60),
         Image("nginx", 192, 60),
         #Image("python", 1020, 120),
-        Image("busybox", 4, 30),
-        Image("redis", 149, 60),
+        # Image("busybox", 4, 30),
+        # Image("redis", 149, 60),
         #Image("postgres", 438, 60),
         #Image("httpd", 195, 60),
         # Image("node", 1100, 90),

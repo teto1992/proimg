@@ -20,7 +20,7 @@ networkNodes(Nodes) :-
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), 
-    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages), 
+    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
 
 /* Identifies images to be replaced (i.e. new images or images with problems on storage or transfer times) */
@@ -130,6 +130,6 @@ readAndAssert(Str) :-
 loadASP() :- once(loadASPPlacement()).
 loadASPPlacement() :-
     findall(at(I,N), at(I,N), Placement),
-    write('asserting new ASP placement: '), writeln(Placement),
+    %write('asserting new ASP placement: '), writeln(Placement),
     allocatedStorage(Placement, Alloc), cost(Placement, Cost),
     (retractall(at(_,_)); true), storePlacement(Placement, Alloc, Cost).
