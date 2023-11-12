@@ -53,14 +53,14 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        #TruncatedBarabasiAlbert(n=200, m=3, k=5),
-        ErdosRenyi(n=500, p=0.05),
-        #BarabasiAlbert(n=500, m=3),
-        #RandomInternet(n=100),
+        TruncatedBarabasiAlbert(n=500, m=3, k=5),
+        #ErdosRenyi(n=500, p=0.05),
+        #BarabasiAlbert(n=100, m=3),
+        #RandomInternet(n=1000),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(16384, 32000, 64000), 0.2),
-                (UniformDiscrete(2048, 4096, 8192), 0.8),
+                (UniformDiscrete(16000, 32000, 64000, 128000), 0.2),
+                (UniformDiscrete(2000, 4000, 8000), 0.8),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5, 6, 7),
         ),
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         # Image("rabbitmq", 201, 100),
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=10)
+    original_problem = Problem(images, g.generate(r), max_replicas=6)
 
     simulator = PaperBenchmarkSimulator(
         original_problem,
