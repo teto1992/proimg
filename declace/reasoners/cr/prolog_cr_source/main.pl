@@ -30,7 +30,8 @@ networkNodes(Nodes) :-
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), 
     crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
-    placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
+    placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost),
+    writeln('managed to cr! :-D'), writeln(Placement), writeln(OkPlacement), writeln(NewPlacement).
 % crPlacement(Images, Nodes, MaxR, InitialPlacement, Cost) :- 
 %     placement(Images, Nodes, MaxR, [], InitialPlacement, Cost).
 
@@ -139,5 +140,6 @@ readAndAssert(Str) :-
 loadASP() :- once(loadASPPlacement()).
 loadASPPlacement() :-
     findall(at(I,N), at(I,N), Placement),
+    write('Placement:'), writeln(Placement),
     allocatedStorage(Placement, Alloc), cost(Placement, Cost),
     (retractall(at(_,_)); true), storePlacement(Placement, Alloc, Cost).

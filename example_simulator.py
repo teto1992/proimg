@@ -7,6 +7,7 @@ from declace_simulation_framework.generator.topology import (
     BarabasiAlbert,
     ErdosRenyi,
     TruncatedBarabasiAlbert,
+    RandomInternet,
 )
 from declace_simulation_framework.generator.attribute import (
     UniformDiscrete,
@@ -52,12 +53,13 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        # TruncatedBarabasiAlbert(n=1000, m=3, k=5),
-        BarabasiAlbert(n=250, m=3),
+        #TruncatedBarabasiAlbert(n=200, m=3, k=5),
+        BarabasiAlbert(n=100, m=3),
+        #RandomInternet(n=100),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(64000, 128000, 256000, 512000), 0.2),
-                (UniformDiscrete(8000, 16000, 32000), 0.8),
+                (UniformDiscrete(4096, 8092), 0.2),
+                (UniformDiscrete(512, 1024, 2048), 0.8),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
         ),
@@ -77,18 +79,18 @@ if __name__ == "__main__":
         Image("alpine", 8, 30),
         Image("ubuntu", 69, 60),
         Image("nginx", 192, 120),
-        Image("python", 1020, 90),
-        Image("busybox", 4, 30),
-        Image("redis", 149, 60),
+        #Image("python", 1020, 90),
+        # Image("busybox", 4, 30),
+        # Image("redis", 149, 60),
         Image("postgres", 438, 90),
-        Image("httpd", 195, 60),
-        Image("node", 1100, 90),
-        Image("mongo", 712, 30),
-        Image("mysql", 621, 60),
-        Image("memcached", 126, 30),
-        Image("traefik", 148, 50),
-        Image("mariadb", 387, 120),
-        Image("rabbitmq", 201, 100),
+        # Image("httpd", 195, 60),
+        # Image("node", 1100, 90),
+        # Image("mongo", 712, 30),
+        # Image("mysql", 621, 60),
+        # Image("memcached", 126, 30),
+        # Image("traefik", 148, 50),
+        # Image("mariadb", 387, 120),
+        # Image("rabbitmq", 201, 100),
     ]
 
     original_problem = Problem(images, g.generate(r), max_replicas=10)

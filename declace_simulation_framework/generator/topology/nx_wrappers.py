@@ -56,3 +56,9 @@ class ErdosRenyi(GraphGenerator):
         assert "p" in kwargs
         assert "seed" not in kwargs
         super().__init__(nx.generators.erdos_renyi_graph, **kwargs)
+
+class RandomInternet(GraphGenerator):
+    def __init__(self, **kwargs):
+        assert "n" in kwargs
+        assert "seed" not in kwargs
+        super().__init__(nx.generators.random_internet_as_graph, **kwargs)

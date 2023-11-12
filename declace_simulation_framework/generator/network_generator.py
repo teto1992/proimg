@@ -5,7 +5,7 @@ from declace_simulation_framework.generator.topology.nx_wrappers import GraphGen
 from dataclasses import dataclass
 
 """
-A Network object models a network of devices. In our model, Nodes are characterized by transfer costs and available storage. 
+A Network object models a network of devices. In our model, Nodes are characterized by storage costs and available storage. 
 Links are characterized by latencies and bandwidths.
 """
 
