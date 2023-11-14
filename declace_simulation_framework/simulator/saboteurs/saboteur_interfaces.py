@@ -47,11 +47,12 @@ class InstanceSaboteur:
     image: ImageSaboteur
 
     def ruin(self, problem: Problem, state: RandomState):
+        #if state.random() < 0.5:    # 50% chance of ruining the input
         images = [self.image.ruin(i, state) for i in problem.images]
         nodes = [self.node.ruin(n, state) for n in problem.network.nodes]
         links = [self.link.ruin(l, state) for l in problem.network.links]
         return Problem(images, NetworkSnapshot(nodes, links), problem.max_replicas)
-
+        #return problem
 
 class NullSaboteur(InstanceSaboteur):
     def ruin(self, problem: Problem, state: RandomState):

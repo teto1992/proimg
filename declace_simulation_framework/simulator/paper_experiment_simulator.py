@@ -60,6 +60,7 @@ class PaperBenchmarkSimulator:
         pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, self.random_state)
         closure = snapshot_closure(pruned_network)
         current_problem = self.original_problem.change_underlying_network(closure)
+        self.original_problem = current_problem # SF: to change the last problem
         return current_problem
 
     def simulate(self, n):
@@ -163,9 +164,9 @@ class PaperBenchmarkSimulator:
                     row['declace_cost'] = -1
                     declace_placement = None
                 else:
-                    row['cr_time'] = stopwatch.get('cr')
-                    row['cr_cost'] = row['asp_cost']
-                    cr_placement = asp_placement
+                    row['cr_time'] = -1 # stopwatch.get('cr')
+                    row['cr_cost'] = -1 # row['asp_cost']
+                    cr_placement = None # asp_placement
                     self.prolog_cr.inject_placement(asp_placement)
                     row['declace_time'] = stopwatch.get('cr') + stopwatch.get('asp')
                     row['declace_cost'] = row['asp_cost']

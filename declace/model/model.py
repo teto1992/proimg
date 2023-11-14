@@ -39,7 +39,7 @@ class Link:
             self.source,
             self.target,
             self.latency, # MILLISECONDI IN PRECISIONE FISSA
-            int(self.bandwidth * 1000),
+            int(self.bandwidth), #* 1000), SF: non serve?
         )
 
 

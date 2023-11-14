@@ -4,4 +4,5 @@ from .nx_wrappers import (
     GraphGenerator,
     TruncatedBarabasiAlbert,
     RandomInternet,
+    WattsStrogatz,
 )
