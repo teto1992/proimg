@@ -60,8 +60,8 @@ if __name__ == "__main__":
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(32000, 64000), 0.05),
-                (UniformDiscrete(8000, 16000), 0.15),
-                (UniformDiscrete(1000, 2000, 4000), 0.8),
+                (UniformDiscrete(16000, 32000), 0.15),
+                (UniformDiscrete(1000, 2000, 4000, 8000), 0.8),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5, 6, 7),
         ),
