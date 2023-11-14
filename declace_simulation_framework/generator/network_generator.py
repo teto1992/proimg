@@ -20,7 +20,6 @@ class NodeGenerator:
             i, self.storage.generate(random_state), self.cost.generate(random_state)
         )
 
-
 @dataclass(frozen=True)
 class LinkGenerator:
     latency: AttributeGenerator

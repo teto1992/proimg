@@ -46,7 +46,6 @@ class TruncatedBarabasiAlbert(GraphGenerator):
         g = super().generate(random_state)
         for node_id in range(self.k):
             g.remove_node(node_id)
-
         return g
 
 
