@@ -56,7 +56,7 @@ if __name__ == "__main__":
     g = NetworkGenerator(
         # TruncatedBarabasiAlbert(n=256, m=3, k=5),
         # ErdosRenyi(n=512, p=0.05),
-        BarabasiAlbert(n=1024, m=3),
+        BarabasiAlbert(n=512, m=3),
         # RandomInternet(n=128),
         # WattsStrogatz(n=256, k=4, p=0.1),
         NodeGenerator(
@@ -90,17 +90,17 @@ if __name__ == "__main__":
         Image("httpd", 195, 30),
         Image("postgres", 438, 60),
 
-        Image("ubuntu", 69, 15),
-        Image("redis", 149, 30),
-        Image("rabbitmq", 201, 60),
-        Image("mysql", 621, 60),
+        # Image("ubuntu", 69, 15),
+        # Image("redis", 149, 30),
+        # Image("rabbitmq", 201, 60),
+        # Image("mysql", 621, 60),
 
         # Image("mongo", 712, 120),
         # Image("python", 1020,120),
         # Image("node", 1100, 120),
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=256)
+    original_problem = Problem(images, g.generate(r), max_replicas=20)
 
     simulator = PaperBenchmarkSimulator(
         original_problem,

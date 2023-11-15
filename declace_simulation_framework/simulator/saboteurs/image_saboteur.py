@@ -13,8 +13,8 @@ class ImageSizeWobble(ImageSaboteur):
 
     def ruin(self, image: Image, state: RandomState) -> Image:
 
-        # if state.random() < 0.05: # SF: can remove images
-        #     return Image(image.id, 0, int(image.max_transfer_time))
+        if state.random() < 0.05: # SF: can remove images
+            return Image(image.id, 0, int(image.max_transfer_time))
 
         return Image(
             image.id,
