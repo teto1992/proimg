@@ -20,7 +20,7 @@ networkNodes(Nodes) :-
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), 
     %write('initial placement: '), writeln(Placement),
-    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages),
+    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages), %dif(KOImages, Images),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).%,
     %write('final placement: '), writeln(NewPlacement).
 

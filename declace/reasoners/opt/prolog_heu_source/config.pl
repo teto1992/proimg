@@ -9,6 +9,6 @@
 
 :- dynamic(maxReplicas/1).
 
-:- table(transferTime/4) as incremental.
+:- table (transferTime/4) as incremental.
 :- dynamic([link/4], [incremental(true)]).
 :- dynamic([image/3], [incremental(true)]).

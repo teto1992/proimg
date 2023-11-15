@@ -42,7 +42,7 @@ def show_level(record):
 
 if __name__ == "__main__":
     import sys
-    enable_logging_channels(["DISABLE_LOGGING"])
+    #enable_logging_channels(["DISABLE_LOGGING"])
 
     if len(sys.argv) != 3:
         print("Usage: {} [log file] [seed]".format(__file__))
@@ -54,16 +54,16 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        # TruncatedBarabasiAlbert(n=256, m=3, k=5),
+        # TruncatedBarabasiAlbert(n=512, m=3, k=1),
         # ErdosRenyi(n=512, p=0.05),
         BarabasiAlbert(n=512, m=3),
-        # RandomInternet(n=128),
-        # WattsStrogatz(n=256, k=4, p=0.1),
+        # RandomInternet(n=512),
+        # WattsStrogatz(n=512, k=4, p=0.1),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(64000, 128000), 0.2),
-                (UniformDiscrete(16000, 32000), 0.5),
-                (UniformDiscrete(4000, 8000), 0.3),
+                (UniformDiscrete(64000, 128000), 0.1),
+                (UniformDiscrete(16000, 32000), 0.8),
+                (UniformDiscrete(4000, 8000), 0.1),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5),
         ),
@@ -82,25 +82,21 @@ if __name__ == "__main__":
     images = [
         Image("busybox", 4, 15),
         Image("memcached", 126, 30),
-        Image("nginx", 192, 30),
-        Image("mariadb", 387, 60),
+        Image("nginx", 192, 60),
+        Image("mariadb", 387, 120),
 
         Image("alpine", 8, 15),
         Image("traefik", 148, 30),
-        Image("httpd", 195, 30),
-        Image("postgres", 438, 60),
+        Image("httpd", 195, 60),
+        Image("postgres", 438, 120),
 
-        # Image("ubuntu", 69, 15),
-        # Image("redis", 149, 30),
-        # Image("rabbitmq", 201, 60),
-        # Image("mysql", 621, 60),
-
-        # Image("mongo", 712, 120),
-        # Image("python", 1020,120),
-        # Image("node", 1100, 120),
+        Image("ubuntu", 69, 15),
+        Image("redis", 149, 30),
+        Image("rabbitmq", 201, 60),
+        Image("mysql", 621, 120),
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=20)
+    original_problem = Problem(images, g.generate(r), max_replicas=8)
 
     simulator = PaperBenchmarkSimulator(
         original_problem,
