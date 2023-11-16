@@ -85,25 +85,25 @@ if __name__ == "__main__":
         Image("nginx", 192, 60),
         Image("mariadb", 387, 120),
 
-        Image("alpine", 8, 15),
-        Image("traefik", 148, 30),
-        Image("httpd", 195, 60),
-        Image("postgres", 438, 120),
+        # Image("alpine", 8, 15),
+        # Image("traefik", 148, 30),
+        # Image("httpd", 195, 60),
+        # Image("postgres", 438, 120),
 
-        Image("ubuntu", 69, 15),
-        Image("redis", 149, 30),
-        Image("rabbitmq", 201, 60),
-        Image("mysql", 621, 120),
+        # Image("ubuntu", 69, 15),
+        # Image("redis", 149, 30),
+        # Image("rabbitmq", 201, 60),
+        # Image("mysql", 621, 120),
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=8)
+    original_problem = Problem(images, g.generate(r), max_replicas=10)
 
     simulator = PaperBenchmarkSimulator(
         original_problem,
         saboteur,
         0.10,
-        15, # cr timeout
-        30, # opt timeout
+        65, # cr timeout
+        65, # opt timeout
         r,
         outputfile
     )

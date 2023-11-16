@@ -23,6 +23,8 @@ crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :-
     crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages), %dif(KOImages, Images),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).%,
     %write('final placement: '), writeln(NewPlacement).
+% crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
+%     placement(Images, Nodes, MaxR, [], NewPlacement, Cost).
 
 /* Identifies images to be replaced (i.e. new images or images with problems on storage or transfer times) */
 crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, KO) :-

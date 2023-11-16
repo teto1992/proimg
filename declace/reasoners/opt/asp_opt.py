@@ -71,6 +71,12 @@ class SolutionCallback:
         self.precision = precision
 
     def __call__(self, model):
+
+        ######## HACK #########
+        if time.time() - self.init_time > 30: # SF manual timeout
+            return False
+        #######################
+
         atoms = project_answer_set(model)
         prg = "\n".join("{}.".format(str(x)) for x in atoms)
         logger.log(
@@ -87,13 +93,12 @@ class SolutionCallback:
                 f"Cost: {model.cost[0]} computed in: {exec_time:.3f} seconds",
             )
             self.intermediate_solutions.append((model.cost[0], exec_time))
-            # self.current_time = time.time()
             self._placement = atoms
             self._cost = model.cost
-            return True
+            return True  
 
         # self.current_time = time.time()
-        assert model.optimality_proven
+        assert model.optimality_proven 
         self._placement = atoms
         self._cost = model.cost
         self._optimal = True
@@ -135,7 +140,7 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         self.cost_at_time: List[Tuple[int, float]] = []
         self.precision = precision
 
-    def opt_solve(self, problem: Problem, timeout: int) -> tuple[Placement, Dict[str, Any]]:
+    def opt_solve(self, problem: Problem, timeout: int) -> Tuple[Placement, Dict[str, Any]]:
         # Initialize a Clingo
         ctl = clingo.Control(["--models=0", "--opt-mode=optN"])
         ctl.load(
@@ -158,10 +163,11 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         # Solving
         cb = SolutionCallback(precision=self.precision)
         stats = None
+        
         with ctl.solve(async_=True, on_model=cb) as handle:
-            handle.wait(timeout)
+            _ = handle.wait(timeout=float(timeout))
             ans = handle.get()
-
+            
             if ans.unsatisfiable:
                 raise UnsatisfiablePlacement()
 
@@ -171,6 +177,10 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         # Parse the answer back into a Placement
         logger.log(
             LOG_LEVEL_NAME, "Intermediate solutions:", len(cb.intermediate_solutions)
+        )
+
+        logger.log(
+            LOG_LEVEL_NAME, "ANS:", ans
         )
 
         return cb.best_known_placement, {'time': ctl.statistics['summary']['times']['total']}
