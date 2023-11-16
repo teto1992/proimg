@@ -1,10 +1,8 @@
 :- consult('config.pl').
 
 placement(Placement, Cost) :-
-    writeln('starting heuristic placement'),
     imagesToPlace(Images), networkNodes(Nodes), maxReplicas(MaxR),
-    once(placement(Images, Nodes, MaxR, [], Placement, Cost)),
-    writeln('placement done').
+    once(placement(Images, Nodes, MaxR, [], Placement, Cost)).
 
 % Sorts images by size in descending order
 imagesToPlace(Images) :-

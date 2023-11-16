@@ -42,7 +42,7 @@ def show_level(record):
 
 if __name__ == "__main__":
     import sys
-    #enable_logging_channels(["DISABLE_LOGGING"])
+    enable_logging_channels(["DISABLE_LOGGING"])
 
     if len(sys.argv) != 3:
         print("Usage: {} [log file] [seed]".format(__file__))
@@ -54,11 +54,7 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        # TruncatedBarabasiAlbert(n=512, m=3, k=1),
-        # ErdosRenyi(n=512, p=0.05),
-        BarabasiAlbert(n=128, m=3),
-        # RandomInternet(n=512),
-        # WattsStrogatz(n=512, k=4, p=0.1),
+        TruncatedBarabasiAlbert(n=256, m=3, k=1),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(64000, 128000), 0.1),
@@ -76,7 +72,7 @@ if __name__ == "__main__":
     saboteur = InstanceSaboteur(
         NodeStorageWobble(UniformContinuous(-0.2, 0.2)),
         LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.2, 0.2)),
-        ImageSizeWobble(UniformContinuous(-0.10, 0.10)),
+        ImageSizeWobble(UniformContinuous(-0.1, 0.1)),
     )
 
     images = [
@@ -85,10 +81,10 @@ if __name__ == "__main__":
         Image("nginx", 192, 60),
         Image("mariadb", 387, 120),
 
-        Image("alpine", 8, 15),
-        Image("traefik", 148, 30),
-        Image("httpd", 195, 60),
-        Image("postgres", 438, 120),
+        # Image("alpine", 8, 15),
+        # Image("traefik", 148, 30),
+        # Image("httpd", 195, 60),
+        # Image("postgres", 438, 120),
 
         # Image("ubuntu", 69, 15),
         # Image("redis", 149, 30),
@@ -101,9 +97,9 @@ if __name__ == "__main__":
     simulator = PaperBenchmarkSimulator(
         original_problem,
         saboteur,
-        0.10,
-        65, # cr timeout
-        65, # opt timeout
+        0.05, # node crash probability
+        130, # cr timeout
+        180, # opt timeout
         r,
         outputfile
     )

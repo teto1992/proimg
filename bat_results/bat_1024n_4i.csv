@@ -1,0 +1,4 @@
+step,asp_time,heu_time,cr_time,declace_time,asp_cost,heu_cost,cr_cost,declace_cost,asp_placement,heu_placement,cr_placement,declace_placement
+0,142.30573,186.00999,-1,142.30573,3797,-1,-1,3797,"(busybox,n1),(memcached,n1),(nginx,n1),(mariadb,n1),(memcached,n8),(memcached,n920)",,,"(busybox,n1),(memcached,n1),(nginx,n1),(mariadb,n1),(memcached,n8),(memcached,n920)"
+1,132.12601,189.36433,5.05498,137.18099,6633,-1,-1,6633,"(busybox,n1),(memcached,n1),(nginx,n1),(mariadb,n1),(busybox,n890),(memcached,n890),(nginx,n890),(mariadb,n890),(memcached,n8),(memcached,n240)",,,"(busybox,n1),(memcached,n1),(nginx,n1),(mariadb,n1),(busybox,n890),(memcached,n890),(nginx,n890),(mariadb,n890),(memcached,n8),(memcached,n240)"
+2,129.96152,190.73737,140.07314,270.03466000000003,3797,-1,-1,3797,"(busybox,n1),(memcached,n1),(nginx,n1),(mariadb,n1),(memcached,n8),(memcached,n459)",,,"(busybox,n1),(memcached,n1),(nginx,n1),(mariadb,n1),(memcached,n8),(memcached,n459)"

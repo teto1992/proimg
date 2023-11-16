@@ -19,12 +19,8 @@ networkNodes(Nodes) :-
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), 
-    %write('initial placement: '), writeln(Placement),
-    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages), %dif(KOImages, Images),
-    placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).%,
-    %write('final placement: '), writeln(NewPlacement).
-% crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
-%     placement(Images, Nodes, MaxR, [], NewPlacement, Cost).
+    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages), dif(Images,KOImages),
+    placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).
 
 /* Identifies images to be replaced (i.e. new images or images with problems on storage or transfer times) */
 crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, KO) :-
@@ -32,10 +28,8 @@ crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, KO) :-
     length(INs, IReplicas), IReplicas =< MaxR,
     transferTimesOk(I, Nodes, TmpPOk),
     image(I, Size, _), storageOk(I, Size, TmpPOk, Alloc), !,
-    %write('checked image '), writeln(I),
     crStep(Is, Nodes, MaxR, P, TmpPOk, NewPOk, Alloc, KO).
 crStep([I|Is], Nodes, MaxR, P, POk, NewPOk, Alloc, [I|KO]) :-
-    %write('image to replace '), writeln(I),
     crStep(Is, Nodes, MaxR, P, POk, NewPOk, Alloc, KO).
 crStep([], _, _, _, POk, POk, _, []).
 
