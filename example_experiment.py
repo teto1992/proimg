@@ -56,14 +56,14 @@ if __name__ == "__main__":
     g = NetworkGenerator(
         # TruncatedBarabasiAlbert(n=512, m=3, k=1),
         # ErdosRenyi(n=512, p=0.05),
-        BarabasiAlbert(n=512, m=3),
+        BarabasiAlbert(n=128, m=3),
         # RandomInternet(n=512),
         # WattsStrogatz(n=512, k=4, p=0.1),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(64000, 128000), 0.1),
-                (UniformDiscrete(16000, 32000), 0.8),
-                (UniformDiscrete(4000, 8000), 0.1),
+                (UniformDiscrete(1000, 1000), 0.1),
+                (UniformDiscrete(1000, 1000), 0.8),
+                (UniformDiscrete(1000, 1000), 0.1),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5),
         ),
