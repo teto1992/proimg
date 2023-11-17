@@ -98,10 +98,10 @@ if __name__ == "__main__":
         original_problem,
         saboteur,
         0.05, # node crash probability
-        15, # cr timeout
+        5, # cr timeout
         200, # opt timeout
         r,
         outputfile
     )
 
-    simulator.simulate(200)
+    simulator.simulate(300)

@@ -104,4 +104,4 @@ if __name__ == "__main__":
         outputfile
     )
 
-    simulator.simulate(200)
+    simulator.simulate(300)
