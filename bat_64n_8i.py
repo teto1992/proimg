@@ -96,6 +96,7 @@ if __name__ == "__main__":
 
     simulator = PaperBenchmarkSimulator(
         original_problem,
+        g,
         saboteur,
         0.05, # node crash probability
         10, # cr timeout
