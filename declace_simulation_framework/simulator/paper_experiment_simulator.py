@@ -11,6 +11,7 @@ from declace.model import Problem, PRECISION
 from declace.reasoners.cr.prolog_cr import PrologContinuousReasoningService
 from declace.reasoners.opt.asp_opt import ASPOptimalReasoningService
 from declace.reasoners.opt.prolog_heu import PrologHeuristicReasoningService
+from declace_simulation_framework.generator import NetworkGenerator
 
 from declace_simulation_framework.simulator.saboteurs import InstanceSaboteur
 from declace_simulation_framework.utils.network_utils import (
@@ -30,6 +31,7 @@ class PaperBenchmarkSimulator:
     def __init__(
         self,
         problem: Problem,
+        network_generator: NetworkGenerator,
         saboteur: InstanceSaboteur,
         shutdown_probability: float,
         cr_timeout: int,
@@ -42,6 +44,8 @@ class PaperBenchmarkSimulator:
         self.saboteur = saboteur
         self.shutdown_probability = shutdown_probability
 
+        self.current_problem = problem
+
         self.asp_scratch = ASPOptimalReasoningService(PRECISION)
         self.prolog_cr = PrologContinuousReasoningService()
         self.prolog_scratch = PrologHeuristicReasoningService()
@@ -52,16 +56,23 @@ class PaperBenchmarkSimulator:
         self.random_state = random_state
         self.output_filename = output_filename
 
+        self.network_generator = network_generator
+
     def __cleanup__(self):
         self.prolog_scratch.cleanup()
         self.prolog_cr.cleanup()
 
     def ruin(self):
-        pruned_network = prune_network(self.original_problem.network, self.shutdown_probability, self.random_state)
+        # Update the current problem with a saboteur
+        self.current_problem = self.saboteur.ruin(self.current_problem, self.random_state)
+
+        # Now prune some nodes, build a closure
+        pruned_network = prune_network(self.current_problem.network, self.shutdown_probability, self.random_state)
         closure = snapshot_closure(pruned_network)
-        current_problem = self.original_problem.change_underlying_network(closure)
-        #self.original_problem = current_problem # SF: to change the last problem
-        return current_problem
+
+        # Create a problem instance w/ the pruned nodes
+        to_return = self.current_problem.change_underlying_network(closure)
+        return to_return
 
     def simulate(self, n):
         asp_placement, asp_cost = None, -1
@@ -190,7 +201,11 @@ class PaperBenchmarkSimulator:
             log_file.flush()
 
             if asp_placement is None:
-                problem = self.ruin()
+                # Inutile: viene rifatto in cima al while!
+                # problem = self.ruin()
+
+                # Quando ASP fallisce, rigeneriamo una topologia a partire da quella originale
+                self.current_problem = self.original_problem.change_underlying_network(self.network_generator.generate(self.random_state))
 
         log_file.close()
         self.__cleanup__()
