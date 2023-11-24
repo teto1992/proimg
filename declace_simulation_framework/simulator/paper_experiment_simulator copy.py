@@ -79,6 +79,8 @@ class PaperBenchmarkSimulator:
         heu_placement, heu_cost = None, -1
         cr_placement, cr_cost = None, -1
 
+        ok = 0
+
         log_file = Path(self.output_filename).open('w')
         writer = csv.DictWriter(
             log_file,
@@ -139,7 +141,10 @@ class PaperBenchmarkSimulator:
         })
         log_file.flush()
 
-        for step in range(1, n):
+        step = 0
+
+        while(ok < 100):
+            step += 1
             asp_placement, asp_cost = None, -1
             heu_placement, heu_cost = None, -1
             cr_placement, cr_cost = None, -1
@@ -197,14 +202,12 @@ class PaperBenchmarkSimulator:
             row['cr_placement'] = cr_placement.as_pairs if cr_placement is not None else None
             row['declace_placement'] = cr_placement.as_pairs if cr_placement is not None else row['asp_placement']
 
-            writer.writerow(row)
-            log_file.flush()
+            if None not in [asp_placement, heu_placement, cr_placement]:
+                writer.writerow(row)
+                log_file.flush()
+                ok = ok + 1
 
             if asp_placement is None:
-                # Inutile: viene rifatto in cima al while!
-                # problem = self.ruin()
-
-                # Quando ASP fallisce, rigeneriamo una topologia a partire da quella originale
                 self.current_problem = self.original_problem.change_underlying_network(self.network_generator.generate(self.random_state))
 
         log_file.close()
