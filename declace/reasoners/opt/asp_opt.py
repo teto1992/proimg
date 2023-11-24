@@ -4,6 +4,9 @@ from math import ceil
 from pathlib import Path
 from typing import List, Tuple, Any, Dict
 
+from ctypes import *
+from pathlib import Path
+
 import clingo
 
 from declace.exceptions import UnsatisfiablePlacement
@@ -30,21 +33,18 @@ class Context:
     def __init__(self, precision):
         # TODO: Unità di misura, cifre aritmetica
         self.precision = precision
+        so_file = (Path(__file__).parent / 'ttime.so').absolute() 
+        my_functions = CDLL(so_file)
+        my_functions.transfer_time.argtypes = [c_float, c_float, c_float]
+        self.transfer_time = my_functions.transfer_time
 
                                   # MB,    Mb/s [1000],     ms
     def compute_transfer_time(self, size, bandwidth, latency):
-        # bandwidth = bandwidth.number / 1000
 
-        # latency.number / 1000 ms -> s
-        # r_seconds = (
-        #     float(size.number) * 8.0 / float(bandwidth)
-        #     + float(latency.number) / 1000
-        # )
-        # r_milliseconds = r_seconds * 1000
+        #r_milliseconds = (float(size.number) * float(8000.0) / float(bandwidth.number) + float(latency.number))
         
-        # r_milliseconds = (float(size.number) * float(8.0) / float(bandwidth.number))*1000 + float(latency.number)
-        r_milliseconds = (float(size.number) * float(8.0) / float(bandwidth.number) + float(latency.number)/1000)*1000
-        
+        r_milliseconds = self.transfer_time(size.number, bandwidth.number, latency.number)
+
         logger.log(
             "@TERM",
             Messages.TRANSFER_TIME_COMPUTATION.format(

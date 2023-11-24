@@ -48,7 +48,7 @@ class InstanceSaboteur:
 
     def ruin(self, problem: Problem, state: RandomState):
 
-        VARIATION_RATE = 10
+        VARIATION_RATE = 1/3
 
         if state.random() < VARIATION_RATE:
             images = [self.image.ruin(i, state) for i in problem.images]

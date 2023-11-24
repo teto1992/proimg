@@ -54,7 +54,7 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=256, m=3, k=3),
+        TruncatedBarabasiAlbert(n=128, m=3, k=3),
         # ErdosRenyi(n=512, p=0.05),
         # BarabasiAlbert(n=128, m=3),
         # RandomInternet(n=512),
@@ -96,7 +96,7 @@ if __name__ == "__main__":
         # Image("mysql", 621, 120),
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=8)
+    original_problem = Problem(images, g.generate(r), max_replicas=10)
 
     simulator = PaperBenchmarkSimulator(
         original_problem,
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         saboteur,
         0.05, # failure probability
         65, # cr timeout
-        95, # opt timeout
+        65, # opt timeout
         r,
         outputfile
     )
