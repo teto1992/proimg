@@ -73,8 +73,8 @@ class SolutionCallback:
     def __call__(self, model):
 
         ######## HACK #########
-        if time.time() - self.init_time > 30: # SF manual timeout
-            return False
+        #if time.time() - self.init_time > 30: # SF manual timeout
+        #    return False
         #######################
 
         atoms = project_answer_set(model)
@@ -166,6 +166,7 @@ class ASPOptimalReasoningService(OIPPReasoningService):
         
         with ctl.solve(async_=True, on_model=cb) as handle:
             _ = handle.wait(timeout=float(timeout))
+            handle.cancel()
             ans = handle.get()
             
             if ans.unsatisfiable:

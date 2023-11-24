@@ -54,7 +54,7 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=128, m=3, k=3),
+        TruncatedBarabasiAlbert(n=256, m=3, k=3),
         # ErdosRenyi(n=512, p=0.05),
         # BarabasiAlbert(n=128, m=3),
         # RandomInternet(n=512),
@@ -74,9 +74,9 @@ if __name__ == "__main__":
     )
 
     saboteur = InstanceSaboteur(
-        NodeStorageWobble(UniformContinuous(-0.1, 0.1)),
-        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.1, 0.1)),
-        ImageSizeWobble(UniformContinuous(-0.1, 0.1)),
+        NodeStorageWobble(UniformContinuous(-0.05, 0.05)),
+        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.05, 0.05)),
+        ImageSizeWobble(UniformContinuous(-0.05, 0.05)),
     )
 
     images = [
@@ -103,8 +103,8 @@ if __name__ == "__main__":
         g,
         saboteur,
         0.05, # failure probability
-        15, # cr timeout
-        35, # opt timeout
+        65, # cr timeout
+        95, # opt timeout
         r,
         outputfile
     )

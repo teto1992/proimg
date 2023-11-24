@@ -15,12 +15,10 @@ networkNodes(Nodes) :-
     findall(cand(N,S,C), node(N,S,C), Tmp0),
     findall(cand(N,S,C,Deg), (member(cand(N,S,C), Tmp0), degree(N,Deg)), Tmp),
     sort(3, @=<, Tmp, Tmp1), sort(4, @>=, Tmp1, Tmp2), sort(2, @>=, Tmp2, Tmp3), 
-    writeln(Tmp3),
     findall(N, member(cand(N,S,C,_), Tmp3), Nodes).
 
 degree(N, Deg) :- 
-    findall(B, link(N, _, _, B), Bs),  length(Bs, L),
-    (dif(L,0) -> sum_list(Bs, Sum), Deg is Sum/L; Deg=0).
+    findall(B, link(N, _, _, B), Bs),  length(Bs, L), (dif(L,0) -> sum_list(Bs, Sum), Deg is Sum/L; Deg=0).
 
 /* Iterative deepening */
 placement([I|Mages], Nodes, MaxR, PartialPlacement, Placement, Cost) :-
