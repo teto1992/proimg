@@ -12,10 +12,14 @@ imagesToPlace(Images) :-
 
 % Sorts candidates by cost in ascending order and by hardware in descending orders
 networkNodes(Nodes) :- 
-    findall(cand(N,S,C), node(N,S,C), Tmp),
-    sort(2, @>=, Tmp, Tmp1), sort(3, @=<, Tmp1, SortedTmpDes),
-    findall(N, member(cand(N,S,C), SortedTmpDes), Nodes).
+    findall(cand(N,S,C), node(N,S,C), Tmp0),
+    findall(cand(N,S,C,Deg), (member(cand(N,S,C), Tmp0), degree(N,Deg)), Tmp),
+    sort(3, @=<, Tmp, Tmp1), sort(4, @>=, Tmp1, Tmp2), sort(2, @>=, Tmp2, Tmp3), 
+    findall(N, member(cand(N,S,C,_), Tmp3), Nodes).
 
+degree(N, Deg) :- 
+    findall(B, link(N, _, _, B), Bs),  length(Bs, L), (dif(L,0) -> sum_list(Bs, Sum), Deg is Sum/L; Deg=0).
+    
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), 
