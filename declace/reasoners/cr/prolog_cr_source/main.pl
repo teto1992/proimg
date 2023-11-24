@@ -19,8 +19,7 @@ networkNodes(Nodes) :-
 % Determines a Placement of Images onto Nodes, possibly "repairing" an initial Placement
 crPlacement(Images, Nodes, MaxR, NewPlacement, Cost) :- 
     placedImages(Placement, Alloc, _), 
-    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages), 
-    dif(Images,KOImages),
+    crStep(Images, Nodes, MaxR, Placement, [], OkPlacement, Alloc, KOImages), %dif(Images,KOImages),
     placement(KOImages, Nodes, MaxR, OkPlacement, NewPlacement, Cost).   
 
 /* Identifies images to be replaced (i.e. new images or images with problems on storage or transfer times) */
