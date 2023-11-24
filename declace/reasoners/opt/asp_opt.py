@@ -179,8 +179,4 @@ class ASPOptimalReasoningService(OIPPReasoningService):
             LOG_LEVEL_NAME, "Intermediate solutions:", len(cb.intermediate_solutions)
         )
 
-        logger.log(
-            LOG_LEVEL_NAME, "ANS:", ans
-        )
-
         return cb.best_known_placement, {'time': ctl.statistics['summary']['times']['total']}
