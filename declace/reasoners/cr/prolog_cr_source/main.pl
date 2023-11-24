@@ -14,7 +14,8 @@ imagesToPlace(Images) :-
 networkNodes(Nodes) :- 
     findall(cand(N,S,C), node(N,S,C), Tmp0),
     findall(cand(N,S,C,Deg), (member(cand(N,S,C), Tmp0), degree(N,Deg)), Tmp),
-    sort(3, @=<, Tmp, Tmp1), sort(4, @>=, Tmp1, Tmp2), sort(2, @>=, Tmp2, Tmp3), 
+    % per costo crescente   per banda media decrescente per storage decrescente
+    sort(4, @>=, Tmp, Tmp1), sort(2, @>=, Tmp1, Tmp2), sort(3, @=<, Tmp2, Tmp3), 
     findall(N, member(cand(N,S,C,_), Tmp3), Nodes).
 
 degree(N, Deg) :- 
