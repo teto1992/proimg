@@ -51,8 +51,7 @@ replicaPlacement(I, Nodes, PPlacement, NewPPlacement, R) :-
 transferTimesOk(I, [N|Ns], P) :-
     dif(P,[]), member(at(I,M),P),
     image(I,_,MaxR), 
-    transferTime(I,M,N,T),
-    T < MaxR, !, % one source is enough
+    transferTime(I,M,N,T), T < MaxR, !, % one source is enough
     transferTimesOk(I, Ns, P).
 transferTimesOk(_, [], _).
 

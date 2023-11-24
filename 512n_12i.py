@@ -54,12 +54,16 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=1024, m=3, k=1),
+        TruncatedBarabasiAlbert(n=512, m=3, k=1),
+        # ErdosRenyi(n=512, p=0.05),
+        # BarabasiAlbert(n=128, m=3),
+        # RandomInternet(n=512),
+        # WattsStrogatz(n=512, k=4, p=0.1),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(64000, 128000), 0.1),
-                (UniformDiscrete(16000, 32000), 0.8),
-                (UniformDiscrete(4000, 8000), 0.1),
+                (UniformDiscrete(64000, 128000), 0.2),
+                (UniformDiscrete(16000, 32000), 0.4),
+                (UniformDiscrete(4000, 8000), 0.4),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5),
         ),
@@ -70,8 +74,8 @@ if __name__ == "__main__":
     )
 
     saboteur = InstanceSaboteur(
-        NodeStorageWobble(UniformContinuous(-0.2, 0.2)),
-        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.2, 0.2)),
+        NodeStorageWobble(UniformContinuous(-0.1, 0.1)),
+        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.1, 0.1)),
         ImageSizeWobble(UniformContinuous(-0.1, 0.1)),
     )
 
@@ -81,26 +85,26 @@ if __name__ == "__main__":
         Image("nginx", 192, 60),
         Image("mariadb", 387, 120),
 
-        # Image("alpine", 8, 15),
-        # Image("traefik", 148, 30),
-        # Image("httpd", 195, 60),
-        # Image("postgres", 438, 120),
+        Image("alpine", 8, 15),
+        Image("traefik", 148, 30),
+        Image("httpd", 195, 60),
+        Image("postgres", 438, 120),
 
-        # Image("ubuntu", 69, 15),
-        # Image("redis", 149, 30),
-        # Image("rabbitmq", 201, 60),
-        # Image("mysql", 621, 120),
+        Image("ubuntu", 69, 15),
+        Image("redis", 149, 30),
+        Image("rabbitmq", 201, 60),
+        Image("mysql", 621, 120),
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=10)
+    original_problem = Problem(images, g.generate(r), max_replicas=8)
 
     simulator = PaperBenchmarkSimulator(
         original_problem,
         g,
         saboteur,
-        0.05, # node crash probability
-        60, # cr timeout
-        200, # opt timeout
+        0.05,
+        65, # cr timeout
+        95, # opt timeout
         r,
         outputfile
     )

@@ -48,25 +48,31 @@ class InstanceSaboteur:
 
     def ruin(self, problem: Problem, state: RandomState):
 
-        # if state.random(0.5):
-        images = [self.image.ruin(i, state) for i in problem.images]
-        nodes = [self.node.ruin(n, state) for n in problem.network.nodes]
-        links = [self.link.ruin(l, state) for l in problem.network.links]
+        INFRA_VARIATION_RATE = 10
+        IMAGE_VARIATION_RATE = 10
 
-        # if state.random()  < 0.5:
+        # if state.random() < VARIATION_RATE:
         #     images = [self.image.ruin(i, state) for i in problem.images]
+        #     nodes = [self.node.ruin(n, state) for n in problem.network.nodes]
+        #     links = [self.link.ruin(l, state) for l in problem.network.links]
+        
         # else:
         #     images = problem.images
-
-        # if state.random() < 0.5:    
-        #     nodes = [self.node.ruin(n, state) for n in problem.network.nodes]
-        # else:
         #     nodes = problem.network.nodes
-        
-        # if state.random() < 0.5:
-        #     links = [self.link.ruin(l, state) for l in problem.network.links]
-        # else:
         #     links = problem.network.links
+
+        if state.random()  < IMAGE_VARIATION_RATE:
+            images = [self.image.ruin(i, state) for i in problem.images]
+        else:
+            images = problem.images
+
+        if state.random() < INFRA_VARIATION_RATE:    
+            nodes = [self.node.ruin(n, state) for n in problem.network.nodes]
+            links = [self.link.ruin(l, state) for l in problem.network.links]
+
+        else:
+            nodes = problem.network.nodes
+            links = problem.network.links
 
         return Problem(images, NetworkSnapshot(nodes, links), problem.max_replicas)
 
