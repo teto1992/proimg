@@ -54,16 +54,16 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=128, m=3, k=6),
+        TruncatedBarabasiAlbert(n=128, m=3, k=3),
         # ErdosRenyi(n=512, p=0.05),
         # BarabasiAlbert(n=128, m=3),
         # RandomInternet(n=512),
         # WattsStrogatz(n=512, k=4, p=0.1),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(64000, 128000), 0.2),
-                (UniformDiscrete(16000, 32000), 0.4),
-                (UniformDiscrete(4000, 8000), 0.4),
+                #(UniformDiscrete(64000, 128000), 0.2),
+                #(UniformDiscrete(3000, 4000), 0.4),
+                (UniformDiscrete(1000, 2000, 4000), 1.0),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5),
         ),
@@ -102,9 +102,9 @@ if __name__ == "__main__":
         original_problem,
         g,
         saboteur,
-        0.01,
-        65, # cr timeout
-        95, # opt timeout
+        0.05, # failure probability
+        15, # cr timeout
+        35, # opt timeout
         r,
         outputfile
     )

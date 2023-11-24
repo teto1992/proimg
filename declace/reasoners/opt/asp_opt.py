@@ -73,7 +73,7 @@ class SolutionCallback:
     def __call__(self, model):
 
         ######## HACK #########
-        if time.time() - self.init_time > 45: # SF manual timeout
+        if time.time() - self.init_time > 30: # SF manual timeout
             return False
         #######################
 
