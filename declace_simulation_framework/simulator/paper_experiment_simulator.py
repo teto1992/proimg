@@ -200,11 +200,7 @@ class PaperBenchmarkSimulator:
             writer.writerow(row)
             log_file.flush()
 
-            if asp_placement is None:
-                # Inutile: viene rifatto in cima al while!
-                # problem = self.ruin()
-
-                # Quando ASP fallisce, rigeneriamo una topologia a partire da quella originale
+            if asp_placement is None: #or (heu_placement is None and cr_placement is None):
                 self.current_problem = self.original_problem.change_underlying_network(self.network_generator.generate(self.random_state))
 
         log_file.close()

@@ -42,7 +42,7 @@ def show_level(record):
 
 if __name__ == "__main__":
     import sys
-    #enable_logging_channels(["DISABLE_LOGGING"])
+    enable_logging_channels(["DISABLE_LOGGING"])
 
     if len(sys.argv) != 3:
         print("Usage: {} [log file] [seed]".format(__file__))
