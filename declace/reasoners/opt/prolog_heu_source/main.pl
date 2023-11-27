@@ -39,13 +39,13 @@ iterativeDeepening(Images, Nodes, PartialPlacement, Placement, M, MaxR) :-
     
 /* Places Images one by one */
 imagePlacement([I|Is], Nodes, PPlacement, Placement, R) :-
-    replicaPlacement(I, Nodes, PPlacement, TmpPPlacement, R), !,
+    replicaPlacement(I, Nodes, PPlacement, TmpPPlacement, R), % !,
     imagePlacement(Is, Nodes, TmpPPlacement, Placement, R).
 imagePlacement([],_,Placement,Placement,_).
 
 /* Places at most M replicas of I onto Nodes, until transferTimesOk/3 holds */
 replicaPlacement(I, Nodes, Placement, Placement, _) :- 
-    transferTimesOk(I, Nodes, Placement), !.
+    transferTimesOk(I, Nodes, Placement).%, !.
 replicaPlacement(I, Nodes, PPlacement, NewPPlacement, R) :-
     % \+ transferTimesOk(I, Nodes, PPlacement), 
     R > 0, NewR is R - 1,

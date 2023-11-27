@@ -103,8 +103,8 @@ if __name__ == "__main__":
         g,
         saboteur,
         0.05, # failure probability
-        65, # cr timeout
-        65, # opt timeout
+        130, # cr timeout
+        200, # opt timeout
         r,
         outputfile
     )

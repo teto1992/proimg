@@ -54,16 +54,17 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=512, m=3, k=3),
+        TruncatedBarabasiAlbert(n=128, m=3, k=3),
         # ErdosRenyi(n=512, p=0.05),
         # BarabasiAlbert(n=128, m=3),
         # RandomInternet(n=512),
         # WattsStrogatz(n=512, k=4, p=0.1),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(16000), 0.2),
-                (UniformDiscrete(8000, 12000), 0.3),
-                (UniformDiscrete(2000, 4000), 0.5),
+                #(UniformDiscrete(16000), 0.2),
+                #(UniformDiscrete(8000, 12000), 0.3),
+                #(UniformDiscrete(2000, 4000), 0.5),
+                (UniformDiscrete(8000), 1),
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5),
         ),
