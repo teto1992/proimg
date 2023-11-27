@@ -6,3 +6,4 @@ from .saboteurs import (
 )
 from .simulator import Simulator
 from .paper_experiment_simulator import PaperBenchmarkSimulator
+from .paper_experiment_simulator_scratch import PaperBenchmarkSimulatorScratch
