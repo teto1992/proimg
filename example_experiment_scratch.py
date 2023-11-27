@@ -116,5 +116,6 @@ if __name__ == "__main__":
         dict_row = simulator.simulate()
 
         writer.writerow(dict_row)
+        LOG_FILE.flush()
 
     LOG_FILE.close()
