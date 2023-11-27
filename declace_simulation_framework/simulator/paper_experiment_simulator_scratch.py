@@ -23,7 +23,7 @@ import csv
 
 from loguru import logger
 
-LOG_LEVEL_NAME = "PAPER_SIMULATOR"
+LOG_LEVEL_NAME = "PAPER_SIMULATOR_SCRATCH"
 logger.level(LOG_LEVEL_NAME, no=15, color="<blue>")
 
 
