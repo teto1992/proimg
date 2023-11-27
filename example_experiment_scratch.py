@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
 
     NUM_EXPERIMENTS = 1000
-    LOG_FILE = Path("OUTPUT.CSV").open()
+    LOG_FILE = Path(outputfile).open(mode='w')
 
     writer = csv.DictWriter(
         LOG_FILE,
