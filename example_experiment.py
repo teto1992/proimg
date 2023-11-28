@@ -61,9 +61,9 @@ if __name__ == "__main__":
         # WattsStrogatz(n=153, k=4, p=0.1),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(8000, 16000), 0.4),
-                (UniformDiscrete(4000), 0.5),
-                (UniformDiscrete(2000), 0.1)
+                #(UniformDiscrete(8000, 16000), 0.4),
+                #(UniformDiscrete(4000), 0.5),
+                (UniformDiscrete(4000), 1)
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5),
         ),
@@ -74,8 +74,8 @@ if __name__ == "__main__":
     )
 
     saboteur = InstanceSaboteur(
-        NodeStorageWobble(UniformContinuous(-0.2, 0.2)),
-        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.2, 0.2)),
+        NodeStorageWobble(UniformContinuous(-0.15, 0.15)),
+        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.15, 0.15)),
         ImageSizeWobble(UniformContinuous(-0.05, 0.05)),
     )
 
@@ -96,14 +96,14 @@ if __name__ == "__main__":
         Image("mysql", 621, 120),
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=8)
+    original_problem = Problem(images, g.generate(r), max_replicas=10)
 
     simulator = PaperBenchmarkSimulator(
         original_problem,
         g,
         saboteur,
         0.05, # failure probability
-        10, # cr timeout
+        6, # cr timeout
         45, # opt timeout
         r,
         outputfile

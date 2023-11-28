@@ -3,12 +3,12 @@
 :- set_prolog_flag(last_call_optimisation, true).
 
 :- dynamic(placedImages/3).
-% :- dynamic(link/4).
-% :- dynamic(image/3).
+:- dynamic(link/4).
+:- dynamic(image/3).
 :- dynamic(node/3).
 
 :- dynamic(maxReplicas/1).
 
-:- table (transferTime/4) as incremental.
-:- dynamic([link/4], [incremental(true)]).
-:- dynamic([image/3], [incremental(true)]).
+%:- table (transferTime/4) as incremental.
+%:- dynamic([link/4], [incremental(true)]).
+%:- dynamic([image/3], [incremental(true)]).

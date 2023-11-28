@@ -50,7 +50,7 @@ class InstanceSaboteur:
 
         VARIATION_RATE = 1/10
 
-        if state.random() < 10:
+        if state.random() < 0.5:
             nodes = [self.node.ruin(n, state) for n in problem.network.nodes]
             links = [self.link.ruin(l, state) for l in problem.network.links]
         
