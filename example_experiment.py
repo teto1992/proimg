@@ -54,11 +54,11 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        # TruncatedBarabasiAlbert(n=153, m=3, k=3),
+        TruncatedBarabasiAlbert(n=153, m=3, k=3),
         # ErdosRenyi(n=153, p=0.05),
         # BarabasiAlbert(n=153, m=3),
         # RandomInternet(n=153),
-        WattsStrogatz(n=153, k=4, p=0.1),
+        # WattsStrogatz(n=153, k=4, p=0.1),
         NodeGenerator(
             storage=MultiModal(
                 (UniformDiscrete(8000, 16000), 0.4),
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         g,
         saboteur,
         0.05, # failure probability
-        30, # cr timeout
+        10, # cr timeout
         45, # opt timeout
         r,
         outputfile
