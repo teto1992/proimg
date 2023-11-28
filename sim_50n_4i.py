@@ -54,7 +54,7 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=28, m=3, k=3),
+        TruncatedBarabasiAlbert(n=53, m=3, k=3),
         # ErdosRenyi(n=153, p=0.05),
         # BarabasiAlbert(n=153, m=3),
         # RandomInternet(n=153),
@@ -85,15 +85,15 @@ if __name__ == "__main__":
         Image("nginx", 192, 60),
         Image("mariadb", 387, 120),
 
-        Image("alpine", 8, 15),
-        Image("traefik", 148, 30),
-        Image("httpd", 195, 60),
-        Image("postgres", 438, 120),
+        #Image("alpine", 8, 15),
+        #Image("traefik", 148, 30),
+        #Image("httpd", 195, 60),
+        #Image("postgres", 438, 120),
 
-        Image("ubuntu", 69, 15),
-        Image("redis", 149, 30),
-        Image("rabbitmq", 201, 60),
-        Image("mysql", 621, 120),
+        #Image("ubuntu", 69, 15),
+        #Image("redis", 149, 30),
+        #Image("rabbitmq", 201, 60),
+        #Image("mysql", 621, 120),
     ]
 
     original_problem = Problem(images, g.generate(r), max_replicas=10)

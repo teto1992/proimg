@@ -54,7 +54,7 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=28, m=3, k=3),
+        TruncatedBarabasiAlbert(n=78, m=3, k=3),
         # ErdosRenyi(n=153, p=0.05),
         # BarabasiAlbert(n=153, m=3),
         # RandomInternet(n=153),
