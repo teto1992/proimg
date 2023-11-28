@@ -50,6 +50,8 @@ class PaperBenchmarkSimulatorScratch:
 
         problem = self.original_problem
 
+        problem = problem.change_underlying_network(snapshot_closure(problem.network))
+
         try:
             with stopwatch.trigger('asp'):
                 asp_placement, asp_stats = self.asp_scratch.opt_solve(problem, self.timeout)

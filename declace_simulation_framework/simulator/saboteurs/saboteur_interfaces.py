@@ -48,17 +48,20 @@ class InstanceSaboteur:
 
     def ruin(self, problem: Problem, state: RandomState):
 
-        VARIATION_RATE = 10
+        VARIATION_RATE = 1/10
 
-        if state.random() < VARIATION_RATE:
-            images = [self.image.ruin(i, state) for i in problem.images]
+        if state.random() < 10:
             nodes = [self.node.ruin(n, state) for n in problem.network.nodes]
             links = [self.link.ruin(l, state) for l in problem.network.links]
         
         else:
-            images = problem.images
             nodes = problem.network.nodes
             links = problem.network.links
+
+        if state.random() < VARIATION_RATE:
+            images = [self.image.ruin(i, state) for i in problem.images]
+        else:
+            images = problem.images
 
         return Problem(images, NetworkSnapshot(nodes, links), problem.max_replicas)
 

@@ -1,4 +1,7 @@
+import csv
 import sys
+from pathlib import Path
+
 from numpy.random import RandomState
 from argparse import ArgumentParser
 
@@ -25,7 +28,7 @@ from declace_simulation_framework.simulator import (
     InstanceSaboteur,
     NodeStorageWobble,
     LinkTiedLatencyBandwidthWobble,
-    ImageSizeWobble, PaperBenchmarkSimulator,
+    ImageSizeWobble, PaperBenchmarkSimulatorScratch
 )
 from declace_simulation_framework.simulator.saboteurs import NullSaboteur
 from declace.utils import enable_logging_channels
@@ -54,16 +57,12 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=512, m=3, k=3),
-        # ErdosRenyi(n=512, p=0.05),
-        # BarabasiAlbert(n=128, m=3),
-        # RandomInternet(n=512),
-        # WattsStrogatz(n=512, k=4, p=0.1),
+        TruncatedBarabasiAlbert(n=103, m=3, k=3),
         NodeGenerator(
             storage=MultiModal(
-                (UniformDiscrete(16000), 0.2),
-                (UniformDiscrete(8000, 12000), 0.3),
-                (UniformDiscrete(2000, 4000), 0.5),
+                (UniformDiscrete(8000, 16000), 0.4),
+                (UniformDiscrete(4000), 0.5),
+                (UniformDiscrete(2000), 0.1)
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5),
         ),
@@ -73,40 +72,49 @@ if __name__ == "__main__":
         ),
     )
 
-    saboteur = InstanceSaboteur(
-        NodeStorageWobble(UniformContinuous(-0.05, 0.05)),
-        LinkTiedLatencyBandwidthWobble(UniformContinuous(-0.05, 0.05)),
-        ImageSizeWobble(UniformContinuous(-0.05, 0.05)),
-    )
-
     images = [
         Image("busybox", 4, 15),
         Image("memcached", 126, 30),
         Image("nginx", 192, 60),
         Image("mariadb", 387, 120),
 
-        Image("alpine", 8, 15),
-        Image("traefik", 148, 30),
-        Image("httpd", 195, 60),
-        Image("postgres", 438, 120),
+        #Image("alpine", 8, 15),
+        #Image("traefik", 148, 30),
+        #Image("httpd", 195, 60),
+        #Image("postgres", 438, 120),
 
-        Image("ubuntu", 69, 15),
-        Image("redis", 149, 30),
-        Image("rabbitmq", 201, 60),
-        Image("mysql", 621, 120),
+        #Image("ubuntu", 69, 15),
+        #Image("redis", 149, 30),
+        #Image("rabbitmq", 201, 60),
+        #Image("mysql", 621, 120),
     ]
 
-    original_problem = Problem(images, g.generate(r), max_replicas=10)
 
-    simulator = PaperBenchmarkSimulator(
-        original_problem,
-        g,
-        saboteur,
-        0.05, # failure probability
-        130, # cr timeout
-        200, # opt timeout
-        r,
-        outputfile
+    NUM_EXPERIMENTS = 1000
+    LOG_FILE = Path(outputfile).open(mode='w')
+
+    writer = csv.DictWriter(
+        LOG_FILE,
+        delimiter=',',
+        quoting=csv.QUOTE_MINIMAL,
+        quotechar="\"",
+        fieldnames=(
+            'asp_time',
+            'heu_time',
+            'asp_cost',
+            'heu_cost',
+            'asp_placement',
+            'heu_placement',
+        )
     )
+    writer.writeheader()
 
-    simulator.simulate(300)
+    for step in range(NUM_EXPERIMENTS):
+        original_problem = Problem(images, g.generate(r), max_replicas=15)
+        simulator = PaperBenchmarkSimulatorScratch(original_problem, timeout=45)
+        dict_row = simulator.simulate()
+
+        writer.writerow(dict_row)
+        LOG_FILE.flush()
+
+    LOG_FILE.close()

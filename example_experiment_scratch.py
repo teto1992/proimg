@@ -57,13 +57,12 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=128, m=3, k=3),
+        TruncatedBarabasiAlbert(n=103, m=3, k=3),
         NodeGenerator(
             storage=MultiModal(
-                #(UniformDiscrete(16000), 0.2),
-                #(UniformDiscrete(8000, 12000), 0.3),
-                #(UniformDiscrete(2000, 4000), 0.5),
-                (UniformDiscrete(8000), 1),
+                (UniformDiscrete(8000, 16000), 0.4),
+                (UniformDiscrete(4000), 0.5),
+                (UniformDiscrete(2000), 0.1)
             ),
             cost=UniformDiscrete(1, 2, 3, 4, 5),
         ),
@@ -111,8 +110,8 @@ if __name__ == "__main__":
     writer.writeheader()
 
     for step in range(NUM_EXPERIMENTS):
-        original_problem = Problem(images, g.generate(r), max_replicas=10)
-        simulator = PaperBenchmarkSimulatorScratch(original_problem, timeout=50)
+        original_problem = Problem(images, g.generate(r), max_replicas=15)
+        simulator = PaperBenchmarkSimulatorScratch(original_problem, timeout=45)
         dict_row = simulator.simulate()
 
         writer.writerow(dict_row)

@@ -18,8 +18,8 @@ class GraphGenerator(ABC):
         raw_g = self.generator(seed=random_state, **self.kwargs)
         return raw_g
 
-        # node_mapping = dict(zip(raw_g.nodes(), sorted(raw_g.nodes(), key=lambda k: random_state.random())))
-        # return nx.relabel_nodes(raw_g, node_mapping)
+        #node_mapping = dict(zip(raw_g.nodes(), sorted(raw_g.nodes(), key=lambda k: random_state.random())))
+        #return nx.relabel_nodes(raw_g, node_mapping)
 
 
 class BarabasiAlbert(GraphGenerator):
