@@ -104,9 +104,10 @@ if __name__ == "__main__":
         saboteur,
         0.05, # failure probability
         6, # cr timeout
-        45, # opt timeout
+        25, # opt timeout
         r,
         outputfile
     )
 
-    simulator.simulate(300)
+    simulator.simulate(1000)
+

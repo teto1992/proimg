@@ -118,8 +118,8 @@ class PaperBenchmarkSimulator:
 
         try:
             with stopwatch.trigger('heu'):
-                heu_placement, heu_stats = None, None
-                #heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
+                #heu_placement, heu_stats = None, None
+                heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
         except:
             pass
 
@@ -186,8 +186,8 @@ class PaperBenchmarkSimulator:
             try:
                 with stopwatch.trigger('heu'):
                     #self.prolog_scratch.prolog_server.thread.query("retractall(placedImages(_,_,_))") # SF: I think this is not needed
-                    heu_placement, heu_stats = None, None
-                    #heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
+                    #heu_placement, heu_stats = None, None
+                    heu_placement, heu_stats = self.prolog_scratch.opt_solve(problem, self.opt_timeout)
                 row['heu_cost'] = heu_placement.cost
             except:
                 row['heu_cost'] = -1

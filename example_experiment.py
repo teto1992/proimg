@@ -42,7 +42,7 @@ def show_level(record):
 
 if __name__ == "__main__":
     import sys
-    enable_logging_channels(["DISABLE_LOGGING"])
+    #enable_logging_channels(["DISABLE_LOGGING"])
 
     if len(sys.argv) != 3:
         print("Usage: {} [log file] [seed]".format(__file__))
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     r = RandomState(seed)
 
     g = NetworkGenerator(
-        TruncatedBarabasiAlbert(n=28, m=3, k=3),
+        TruncatedBarabasiAlbert(n=153, m=3, k=3),
         # ErdosRenyi(n=153, p=0.05),
         # BarabasiAlbert(n=153, m=3),
         # RandomInternet(n=153),
@@ -104,9 +104,9 @@ if __name__ == "__main__":
         saboteur,
         0.05, # failure probability
         6, # cr timeout
-        45, # opt timeout
+        25, # opt timeout
         r,
         outputfile
     )
 
-    simulator.simulate(300)
+    simulator.simulate(1000)
